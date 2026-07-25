@@ -1,0 +1,2550 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מערכת יומני עבודה – בטא ניידת</title>
+<meta name="theme-color" content="#0c3a5c">
+<meta name="description" content="מערכת ניהול פרויקטים ויומני עבודה יומיים לאתרי בנייה">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Heebo:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#17242f;--muted:#5c7286;--line:#d9e1e7;--card:#fff;--paper:#eef1f5;
+ --navy:#0c3a5c;--navy-2:#082a44;--navy-light:#e6edf3;
+ --amber:#b0700e;--amber-light:#f7ecd8;--amber-dark:#8a5709;
+ --success:#1f6b40;--success-light:#e7f3ec;
+ --danger:#ab2318;--danger-light:#fbeae8;
+ --font-display:'Rubik',Arial,sans-serif;--font-body:'Heebo',Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+ --radius:8px
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:var(--font-body);color:var(--ink);
+ background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+ background-size:34px 34px;background-position:-1px -1px;background-attachment:fixed}
+h1,h2,h3{font-family:var(--font-display)}
+header{background:linear-gradient(155deg,var(--navy) 0%,var(--navy-2) 100%);color:#fff;padding:16px 18px;position:sticky;top:0;z-index:10;border-bottom:3px solid var(--amber);box-shadow:0 2px 10px rgba(8,30,50,.25)}
+.head{max-width:1350px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.head h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
+.head h1::before{content:'';width:26px;height:26px;flex:0 0 auto;border-radius:6px;background:var(--amber);
+ background-image:linear-gradient(155deg,var(--amber) 0%,var(--amber-dark) 100%);
+ box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+#saveState{font-family:var(--font-mono);font-size:11.5px;color:#cfe0ee;white-space:nowrap}
+main{max-width:1350px;margin:18px auto;padding:0 14px 70px}.screen{display:none}.screen.active{display:block}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+button{border:0;border-radius:7px;padding:10px 14px;cursor:pointer;background:#fff;color:var(--navy);font-family:var(--font-body);font-weight:600;font-size:13.5px;border:1px solid var(--line);transition:transform .06s ease,box-shadow .15s ease}
+button:hover{box-shadow:0 2px 6px rgba(12,58,92,.12)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+button.secondary{background:#fff;color:var(--navy);border-color:var(--navy)}
+button.success{background:var(--success);color:#fff;border-color:var(--success)}
+button.danger{background:var(--danger-light);color:var(--danger);border:1px solid #f1c0ba}
+button.small{padding:6px 9px;font-size:12px}
+.card,.project-card{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 4px rgba(12,40,64,.06)}
+.card{margin-bottom:14px;overflow:hidden}
+.card-head{padding:13px 16px;background:var(--navy-light);border-bottom:1px solid var(--line);border-right:4px solid var(--amber);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card-head h2{font-size:15px;margin:0;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:9px}
+.card-head h2 .secnum{font-family:var(--font-mono);font-size:11px;font-weight:600;background:var(--navy);color:#fff;border-radius:5px;padding:3px 7px;letter-spacing:.5px}
+.card-head strong{font-family:var(--font-display);font-size:15px;color:var(--navy);font-weight:700}
+.card-body{padding:16px}
+.project-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.project-card{padding:16px;border-top:3px solid var(--amber)}
+.project-card h3{margin:8px 0;font-family:var(--font-display);font-size:16px;color:var(--navy)}
+.meta{font-size:13px;color:var(--muted);line-height:1.7;font-family:var(--font-body)}
+.meta b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--muted)}
+input,select,textarea{width:100%;border:1px solid #c7d2db;border-radius:7px;padding:9px 10px;font-size:14px;background:#fff;font-family:var(--font-body);color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
+input[type=date],input[type=time],input#jNumber,input#projectNumber,input#jStart,input#jEnd{font-family:var(--font-mono)}
+textarea{min-height:74px}
+.row-card{position:relative;border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:10px;background:#fbfcfd;border-right:3px solid #c7d2db}
+.delete-row{position:absolute;left:10px;top:10px}
+.section-actions{display:flex;justify-content:flex-end;margin-top:10px}
+.journal-row{display:grid;grid-template-columns:90px 1fr 100px 100px;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:8px;background:#fff}
+.journal-row strong{font-family:var(--font-mono);color:var(--navy)}
+.badge{display:inline-block;background:var(--amber-light);color:var(--amber-dark);border-radius:20px;padding:4px 10px;font-size:11.5px;font-weight:700;letter-spacing:.2px;border:1px solid #ecd7ab}
+.badge.locked{background:var(--success-light);color:var(--success);border-color:#bfe0cc}
+.notice{padding:10px 12px;background:var(--navy-light);border:1px solid #cddce8;border-right:3px solid var(--navy);border-radius:7px;margin-bottom:12px;font-size:13px;color:var(--navy)}
+.muted{color:var(--muted);font-size:13px}
+.signature-canvas{width:100%;height:150px;border:1px dashed #a7b6c3;border-radius:8px;background:#fff;touch-action:none}
+.list-modal-backdrop{position:fixed;inset:0;background:rgba(8,20,32,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px}
+.list-modal{width:min(520px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:12px;border:1px solid #cbd5df;border-top:4px solid var(--amber);box-shadow:0 16px 40px rgba(0,0,0,.3);padding:18px;direction:rtl}
+.list-modal h3{margin:0 0 12px;font-family:var(--font-display);color:var(--navy)}
+.list-choice{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #e4e9ee}
+.list-choice input{width:20px;height:20px}
+.list-choice.protected{opacity:.55}
+.list-modal-actions{display:flex;gap:8px;justify-content:flex-start;margin-top:14px;flex-wrap:wrap}
+.hidden{display:none!important}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:9px;display:flex;gap:8px;justify-content:center;box-shadow:0 -2px 8px rgba(12,40,64,.06)}
+.quicknav{position:sticky;top:56px;z-index:9;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px;margin-bottom:14px;display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:0 1px 4px rgba(12,40,64,.06)}
+.quicknav a{flex:0 0 auto;padding:6px 12px;border-radius:6px;background:var(--navy-light);color:var(--navy);text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap;border-bottom:2px solid transparent}
+.quicknav a:hover{background:var(--amber-light);color:var(--amber-dark);border-bottom-color:var(--amber)}
+@media(max-width:850px){.project-grid{grid-template-columns:repeat(2,1fr)}.grid,.grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.project-grid,.grid,.grid-3,.grid-2{grid-template-columns:1fr}.journal-row{grid-template-columns:1fr 1fr}.toolbar,.footer{display:grid;grid-template-columns:1fr 1fr}}
+@media print{header,.toolbar,.footer,.no-print,.delete-row,.section-actions{display:none!important}body{background:#fff}.screen{display:none!important}#journalScreen{display:block!important}main{margin:0;padding:0}.card{box-shadow:none}input,select,textarea{border:0;padding:2px;background:transparent;appearance:none}}
+</style></head>
+<body>
+
+<header><div class="head"><h1>מערכת יומני עבודה למנהל פרויקט</h1><span id="saveState">בטא ניידת · נשמר מקומית</span></div></header>
+<main>
+<section id="projectsScreen" class="screen active">
+<div class="toolbar">
+  <button class="primary" onclick="toggleProjectForm()">פרויקט חדש</button>
+  <button onclick="backupSystem()">גיבוי מערכת</button>
+  <button onclick="pickRestoreFile()">שחזור מגיבוי</button>
+  <button onclick="toggleRecycleBin()">סל מחזור</button>
+</div>
+<div class="card">
+  <div class="card-body">
+    <label>חיפוש פרויקט או מזמין</label>
+    <input id="projectSearch" placeholder="הקלד שם פרויקט או מזמין" oninput="renderProjects()">
+  </div>
+</div>
+<input id="restoreInput" class="hidden" type="file" accept=".html,.json,text/html,application/json" onchange="restoreSystem(event)">
+<div id="recycleBinPanel" class="card hidden">
+  <div class="card-head"><h2>סל מחזור</h2></div>
+  <div class="card-body">
+    <div id="recycleBinList"></div>
+  </div>
+</div>
+<div class="notice">המערכת מבוססת פרויקט: לכל פרויקט ניתן לפתוח יומן אחד בלבד לכל תאריך.</div>
+<div id="projectForm" class="card hidden"><div class="card-head"><strong>פרויקט חדש</strong></div><div class="card-body">
+<div class="grid-3"><div><label>שם הפרויקט</label><input id="pName"></div><div><label>מספר פרויקט</label><input id="pNo"></div><div><label>מזמין</label><input id="pClient"></div><div><label>מנהל פרויקט</label><select id="pManager" onchange="handleNewManagerSelect(this)"><option value="">בחר...</option><option value="__new__">הוסף מנהל פרויקט חדש</option><option value="__remove__">הסר מנהל פרויקט מהרשימה</option></select></div><div><label>מיקום</label><input id="pLocation"></div><div><label>סטטוס</label><select id="pStatus"><option>פעיל</option><option>בהשהיה</option></select></div></div>
+<div class="section-actions"><button class="primary" onclick="createProject()">שמירת פרויקט</button></div></div></div>
+<div id="projectsGrid" class="project-grid"></div>
+</section>
+
+<section id="projectScreen" class="screen">
+<div class="toolbar"><button onclick="goProjects()">כל הפרויקטים</button></div>
+<div class="card"><div class="card-head"><h2 id="projectTitle"></h2><span id="projectStatus" class="badge"></span></div><div class="card-body"><div class="grid-3" style="margin-bottom:12px"><div><label>שם הפרויקט</label><input id="projectNameEdit" readonly></div></div>
+<div class="grid-3"><div><label>מספר פרויקט</label><input id="projectNumber" readonly></div><div><label>מזמין</label><input id="projectClient" readonly></div><div><label>מנהל פרויקט</label><select id="projectManager" disabled onchange="handleExistingManagerSelect(this)"></select></div></div>
+<div class="toolbar" style="margin-top:14px">
+<button class="primary" onclick="createTodayJournal()">יומן חדש להיום</button>
+<button onclick="pickJournalDate()">יומן לתאריך אחר</button>
+<button onclick="duplicateLastJournal()">שכפל קבלנים מיומן קודם</button>
+<button onclick="toggleProjectEdit()">עריכת פרטי הפרויקט</button>
+<button onclick="toggleContactsPanel()">אנשי קשר ותפוצה</button>
+<button onclick="toggleExecutionPlan()">תוכנית ביצוע</button>
+<button onclick="toggleProjectLibrary()">פתח ספריית פרויקט</button>
+</div>
+<div id="projectEditActions" class="section-actions hidden"><button class="primary" onclick="saveProjectEdits()">שמירת שינויים</button></div>
+<div id="contactsPanel" class="card hidden" style="margin-top:14px">
+ <div class="card-head"><h2>אנשי קשר ותפוצה</h2></div>
+ <div class="card-body">
+  <div style="margin-bottom:10px">
+   <label>בחר איש קשר שמור</label>
+   <select id="savedContactSelect" onchange="addSavedContactToProject()"><option value="">בחר...</option></select>
+  </div>
+  <div id="contactsList"></div>
+  <div class="section-actions"><button onclick="addContactRow()">הוספת איש קשר חדש</button><button class="primary" onclick="saveContacts()">שמירת אנשי קשר</button></div>
+ </div>
+</div>
+</div></div>
+<div class="card"><div class="card-head"><strong>יומני עבודה</strong></div><div class="card-body"><div id="journalList"></div></div></div>
+
+
+
+<div id="executionPlanPanel" class="card hidden" style="margin-top:14px">
+  <div class="card-head"><h2>תוכנית ביצוע</h2></div>
+  <div class="card-body">
+    <div id="executionPlanInfo"></div>
+    <div style="margin-top:10px">
+      <label>הערה קצרה</label>
+      <textarea id="executionPlanNote" placeholder="הערה קצרה לגבי תוכנית הביצוע"></textarea>
+    </div>
+    <div class="section-actions" style="gap:8px;flex-wrap:wrap">
+      <button onclick="pickExecutionPlan()">בחר / החלף קובץ</button>
+      <button class="primary" onclick="saveExecutionPlanNote()">שמור הערה</button>
+      <button id="openExecutionPlanBtn" class="hidden" onclick="openExecutionPlan()">פתח תוכנית</button>
+      <button id="deleteExecutionPlanBtn" class="danger hidden" onclick="deleteExecutionPlan()">מחק תוכנית</button>
+    </div>
+    <input id="executionPlanInput" class="hidden" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" onchange="handleExecutionPlan(event)">
+    <div class="muted">תוכנית הביצוע נשמרת ברמת הפרויקט ואינה חלק מהיומן היומי.</div>
+  </div>
+</div>
+
+<div id="projectLibraryPanel" class="card hidden" style="margin-top:14px">
+  <div class="card-head"><h2>ספריית פרויקט</h2></div>
+  <div class="card-body">
+    <div id="projectLibraryList"></div>
+    <div class="section-actions">
+      <button onclick="pickProjectDocument()">העלה מסמך לספרייה</button>
+    </div>
+    <input id="projectDocumentInput" class="hidden" type="file" onchange="handleProjectDocument(event)">
+    <div class="muted">המסמך נשמר פעם אחת בפרויקט וניתן לפתיחה מתוך כרטיס הפרויקט.</div>
+  </div>
+</div>
+</section>
+
+<section id="journalScreen" class="screen">
+<div class="toolbar no-print"><button onclick="openCurrentProject()">חזרה לפרויקט</button><button onclick="saveJournal(true)">שמירה</button><button onclick="openPrintableReport()">הפק PDF</button><button class="success" onclick="showSharePanel()">שתף יומן</button><button class="secondary" onclick="lockJournal()">נעילת יומן</button></div>
+<div class="quicknav no-print">
+ <a href="#sec1">1. פרטים</a><a href="#sec2">2. קבלנים</a><a href="#sec3">3. עבודה</a><a href="#sec4">4. שינויים</a><a href="#sec5">5. בטיחות</a><a href="#sec6">6. קבצים</a><a href="#sec7">7. פעולות</a><a href="#sec8">8. הערות</a><a href="#sec9">9. חתימות</a>
+</div>
+<div class="card" id="sec1"><div class="card-head"><h2><span class="secnum">1</span> פרטי היומן</h2><span id="journalBadge" class="badge">טיוטה</span></div><div class="card-body"><div class="grid">
+<div><label>שם הפרויקט</label><input id="jProjectName" readonly></div><div><label>מספר פרויקט</label><input id="jProjectNo" readonly></div><div><label>מספר יומן</label><input id="jNumber" readonly></div><div><label>תאריך</label><input id="jDate" type="date"></div><div><label>יום</label><input id="jDay" readonly></div><div><label>שעת התחלה</label><input id="jStart" type="time"></div><div><label>שעת סיום</label><input id="jEnd" type="time"></div><div><label>מנהל פרויקט</label><input id="jManager" readonly></div>
+<div><label>מזג אוויר</label><select id="jWeather"><option value=""></option><option>בהיר</option><option>מעונן</option><option>גשם</option><option>רוח חזקה</option><option>אחר</option></select></div>
+<div><label>הפסקת עבודה עקב מזג אוויר</label><select id="jWorkStopped"><option value="false">לא</option><option value="true">כן</option></select></div>
+</div></div></div>
+<div class="card" id="sec2"><div class="card-head"><h2><span class="secnum">2</span> קבלנים וכוח אדם</h2></div><div class="card-body"><div id="contractors"></div><div class="section-actions no-print"><button onclick="addContractor()">הוספת קבלן / צוות</button></div></div></div>
+<div class="card" id="sec3"><div class="card-head"><h2><span class="secnum">3</span> עבודה שבוצעה</h2></div><div class="card-body"><div id="works"></div><div class="section-actions no-print"><button onclick="addWork()">הוספת רשומת עבודה</button></div></div></div>
+<div class="card" id="sec4"><div class="card-head"><h2><span class="secnum">4</span> שינויים / הנחיות / אירועים</h2></div><div class="card-body"><div id="changes"></div><div class="section-actions no-print"><button onclick="addChange()">הוספת רשומה</button></div></div></div>
+<div class="card" id="sec5"><div class="card-head"><h2><span class="secnum">5</span> בטיחות</h2></div><div class="card-body">
+<div id="safetyEmpty">
+  <div class="muted">אין דיווח בטיחות מיוחד ביומן זה.</div>
+  <div class="section-actions no-print" style="gap:8px;flex-wrap:wrap">
+    <button onclick="showSafetyReport()">הוסף דיווח בטיחות</button>
+    <button onclick="addFullSafetySummary()">הוסף תקציר בטיחות מלא</button>
+  </div>
+</div>
+<div id="safetyReport" class="hidden">
+  <div id="safetySummaryWrap" class="hidden" style="margin-bottom:12px">
+    <label>תקציר בטיחות מלא</label>
+    <textarea id="safetySummary" style="min-height:130px"></textarea>
+  </div>
+  <div class="grid-3">
+    <div><label>ליקויי בטיחות</label><textarea id="safetyDefects"></textarea></div>
+    <div><label>הנחיות בטיחות שניתנו</label><textarea id="safetyInstructions"></textarea></div>
+    <div><label>פעולות שבוצעו לתיקון</label><textarea id="safetyActions"></textarea></div>
+  </div>
+  <div class="grid-3" style="margin-top:12px">
+    <div><label>עבודה בגובה / הרמה</label><select id="safetyHeight"><option value=""></option><option>לא בוצעה</option><option>בוצעה בהתאם להיתר/אישור</option><option>נדרש טיפול</option></select></div>
+    <div><label>עבודה חמה / חשמל</label><select id="safetyHot"><option value=""></option><option>לא בוצעה</option><option>בוצעה בהתאם להיתר/אישור</option><option>נדרש טיפול</option></select></div>
+    <div><label>דרכי מילוט ומערכות אש</label><select id="safetyFire"><option value=""></option><option>תקין</option><option>בוצע תיאום ניתוק/השגחה</option><option>נדרש טיפול</option></select></div>
+  </div>
+  <div class="section-actions no-print"><button class="danger" onclick="removeSafetyReport()">הסר דיווח בטיחות</button></div>
+</div>
+</div></div>
+
+<div class="card" id="sec6"><div class="card-head"><h2><span class="secnum">6</span> קבצים מצורפים</h2></div><div class="card-body">
+<div id="attachments"></div>
+<div class="section-actions no-print">
+<button onclick="pickAttachment('image/*')">בחר תמונה מהגלריה</button>
+<button onclick="pickAttachment('*/*')">צרף מסמך</button>
+</div>
+<input id="attachmentInput" class="hidden" type="file" onchange="handleAttachment(event)">
+<div class="muted">באב־הטיפוס מומלץ לצרף קבצים קטנים. תמונות נשמרות לאחר הקטנה אוטומטית.</div>
+</div></div>
+
+<div class="card" id="sec7"><div class="card-head"><h2><span class="secnum">7</span> פעולות להמשך</h2></div><div class="card-body"><div id="actions"></div><div class="section-actions no-print"><button onclick="addAction()">הוספת פעולה</button></div></div></div>
+<div class="card" id="sec8"><div class="card-head"><h2><span class="secnum">8</span> הערות כלליות</h2></div><div class="card-body"><textarea id="notes"></textarea></div></div>
+
+<div class="card" id="sec9"><div class="card-head"><h2><span class="secnum">9</span> חתימות</h2></div><div class="card-body">
+<div id="signaturesEmpty">
+  <div class="muted">לא נוספו חתימות ליומן.</div>
+  <div class="section-actions no-print"><button onclick="addSignature()">הוסף חתימה</button></div>
+</div>
+<div id="signatures"></div>
+</div></div>
+
+<div id="postLockUpdates" class="card hidden">
+<div class="card-head"><h2>עדכונים לאחר נעילה</h2></div>
+<div class="card-body">
+<div id="postLockList"></div>
+<div class="section-actions no-print"><button onclick="pickPostLockAttachment()">הוסף מסמך / תמונה כעדכון</button></div>
+<input id="postLockInput" class="hidden" type="file" onchange="handlePostLockAttachment(event)">
+</div></div>
+<div id="sharePanel" class="card hidden no-print">
+ <div class="card-head"><h2>שליחת היומן</h2></div>
+ <div class="card-body">
+  <div class="muted" style="margin-bottom:10px">בחר נמען שמור או שלח ללא נמען קבוע.</div>
+  <div id="shareContacts"></div>
+  <div class="toolbar" style="margin-top:10px">
+   <button class="success" onclick="shareSelectedWhatsApp()">WhatsApp</button>
+   <button onclick="shareSelectedEmail()">מייל</button>
+   <button onclick="hideSharePanel()">סגירה</button>
+  </div>
+ </div>
+</div>
+<div id="lockedActions" class="card hidden no-print"><div class="card-head"><h2>היומן נעול ומוכן להפצה</h2></div><div class="card-body"><div class="toolbar"><button class="primary" onclick="openPrintableReport()">פתח דוח להדפסה / PDF</button><button class="success" onclick="shareToWhatsApp()">שלח ב־WhatsApp</button><button onclick="shareByEmail()">שלח במייל</button><button onclick="downloadReport()">הורד דוח</button><button onclick="copyJournalText()">העתק טקסט</button></div><div class="statusline">לאחר פתיחת הדוח בחר: הדפסה → שמירה כ־PDF. אם ההדפסה לא נפתחת (בתצוגה בתוך Claude), לחץ "הורד דוח" ופתח את הקובץ בדפדפן הרגיל של המכשיר.</div></div></div>
+</section>
+<datalist id="contractorOptions"></datalist>
+<datalist id="locationOptions"></datalist>
+<datalist id="workDescriptionOptions"></datalist>
+<datalist id="sourceOptions"></datalist>
+<datalist id="actionOptions"></datalist>
+</main>
+<div id="footer" class="footer hidden no-print"><button onclick="saveJournal(true)">שמירה</button><button onclick="openPrintableReport()">PDF</button><button class="secondary" onclick="lockJournal()">נעילת יומן</button><button onclick="openCurrentProject()">חזרה</button></div>
+
+<div id="listDeleteModal" class="list-modal-backdrop hidden">
+  <div class="list-modal">
+    <h3 id="listDeleteTitle">הסרת פריטים מהרשימה</h3>
+    <div id="listDeleteItems"></div>
+    <div class="list-modal-actions">
+      <button id="confirmListDeleteBtn" class="danger" onclick="confirmListDelete()">מחק מסומנים</button>
+      <button onclick="closeListDeleteModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<div id="customDialogBackdrop" class="list-modal-backdrop hidden">
+  <div class="list-modal" style="width:min(400px,100%)">
+    <h3 id="customDialogTitle">אישור</h3>
+    <div id="customDialogMessage" class="muted" style="margin-bottom:10px;white-space:pre-line"></div>
+    <input id="customDialogInput" type="text" style="margin-bottom:6px">
+    <div class="list-modal-actions">
+      <button class="primary" onclick="__customDialogConfirm()">אישור</button>
+      <button onclick="__customDialogCancel()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<div id="linkFallbackBackdrop" class="list-modal-backdrop hidden">
+  <div class="list-modal" style="width:min(440px,100%)">
+    <h3>לא הצלחנו לפתוח אוטומטית</h3>
+    <div class="muted" style="margin-bottom:10px">ייתכן שהדפדפן/הסביבה חוסמים פתיחה אוטומטית של קישורים חיצוניים. אפשר ללחוץ על הקישור למטה, או להעתיק אותו.</div>
+    <a id="linkFallbackAnchor" href="#" target="_blank" rel="noopener" style="display:block;word-break:break-all;background:#eef6fc;border:1px solid #c7dff2;border-radius:8px;padding:10px;margin-bottom:10px;color:var(--p);text-decoration:none">קישור</a>
+    <div class="list-modal-actions">
+      <button class="primary" onclick="copyLinkFallback()">העתק קישור</button>
+      <button onclick="$('linkFallbackBackdrop').classList.add('hidden')">סגירה</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='wj_v2';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"projects":[],"journals":[],"managers":[]}');
+db.projects=db.projects||[];
+db.journals=db.journals||[];
+db.managers=db.managers||[];
+db.contractors=db.contractors||[];
+db.contacts=db.contacts||[];
+db.recycleBin=db.recycleBin||[];
+db.learnedLocations=db.learnedLocations||[];
+db.learnedWorkDescriptions=db.learnedWorkDescriptions||[];
+db.learnedSources=db.learnedSources||[];
+db.learnedActions=db.learnedActions||[];
+db.responsibles=db.responsibles||[];
+   db.trades=db.trades||[];
+   db.teamLeaders=db.teamLeaders||[];
+   db.changeTypes=db.changeTypes||['שינוי','הנחיה','דרישת מזמין','עבודה נוספת','אירוע משמעותי'];
+db.trades=db.trades||[];
+db.teamLeaders=db.teamLeaders||[];
+db.changeTypes=db.changeTypes||['שינוי','הנחיה','דרישת מזמין','עבודה נוספת','אירוע משמעותי'];
+db.projects.forEach(p=>{p.contractors=p.contractors||[];p.contacts=p.contacts||[];p.documents=p.documents||[];p.executionPlan=p.executionPlan||null;p.executionPlanNote=p.executionPlanNote||'';p.contacts=p.contacts||[];});
+let projectId=null,journalId=null,locked=false,timer,projectEditMode=false;
+const $=id=>document.getElementById(id),
+uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+today=()=>{
+ const d=new Date();
+ const y=d.getFullYear();
+ const m=String(d.getMonth()+1).padStart(2,'0');
+ const day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+},
+now=()=>new Date().toTimeString().slice(0,5),
+esc=s=>String(s||'').replace(/"/g,'&quot;');
+const STORAGE_LIMIT_BYTES=5*1024*1024;
+function persist(){
+ const el=document.getElementById('saveState');
+ let json;
+ try{json=JSON.stringify(db)}
+ catch(e){if(el){el.textContent='שגיאה בשמירה';el.style.color='#ffd7d2'}window.__saveFailed=true;return false}
+ try{
+  localStorage.setItem(KEY,json);
+  window.__saveFailed=false;
+  const usedMB=(json.length/1024/1024).toFixed(1),pct=Math.round(json.length/STORAGE_LIMIT_BYTES*100);
+  if(el){
+   el.style.color=pct>=85?'#ffd7d2':'';
+   el.textContent=(pct>=85?'⚠ ':'')+'נשמר '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' · '+usedMB+' MB ('+pct+'%)';
+  }
+  return true;
+ }catch(e){
+  window.__saveFailed=true;
+  if(el){el.style.color='#ffd7d2';el.textContent='⚠ השמירה נכשלה - הזיכרון מלא'}
+  alert('שמירת הנתונים נכשלה — נראה שהזיכרון המקומי מלא (בדרך כלל בגלל תמונות רבות).\nמומלץ מיד לבצע "גיבוי מערכת" ולהוריד את הקובץ, ואז למחוק קבצים/תמונות ישנים שאינם נחוצים.');
+  return false;
+ }
+}
+window.addEventListener('beforeunload',e=>{if(window.__saveFailed){e.preventDefault();e.returnValue=''}});
+
+let __customDialogResolve=null;
+function __showCustomDialog(message,showInput,defaultValue){
+ $('customDialogMessage').textContent=message||'';
+ const inp=$('customDialogInput');
+ inp.value=defaultValue||'';
+ inp.classList.toggle('hidden',!showInput);
+ $('customDialogBackdrop').classList.remove('hidden');
+ if(showInput)setTimeout(()=>{inp.focus();inp.select()},50);
+}
+function __customDialogConfirm(){
+ const inp=$('customDialogInput');
+ const showInput=!inp.classList.contains('hidden');
+ $('customDialogBackdrop').classList.add('hidden');
+ const resolve=__customDialogResolve;__customDialogResolve=null;
+ if(resolve)resolve(showInput?inp.value:true);
+}
+function __customDialogCancel(){
+ $('customDialogBackdrop').classList.add('hidden');
+ const resolve=__customDialogResolve;__customDialogResolve=null;
+ if(resolve)resolve(showInput_cancel());
+ function showInput_cancel(){const inp=$('customDialogInput');return inp.classList.contains('hidden')?false:null}
+}
+$('customDialogInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();__customDialogConfirm()}else if(e.key==='Escape'){e.preventDefault();__customDialogCancel()}});
+function customPrompt(message,defaultValue=''){
+ return new Promise(resolve=>{__customDialogResolve=resolve;__showCustomDialog(message,true,defaultValue)});
+}
+function customConfirm(message){
+ return new Promise(resolve=>{__customDialogResolve=resolve;__showCustomDialog(message,false)});
+}
+function showLinkFallback(url){
+ const a=$('linkFallbackAnchor');a.href=url;a.textContent=url;
+ $('linkFallbackBackdrop').classList.remove('hidden');
+}
+async function copyLinkFallback(){
+ const url=$('linkFallbackAnchor').href;
+ try{await navigator.clipboard.writeText(url);alert('הקישור הועתק.')}
+ catch(e){const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('הקישור הועתק.')}
+}
+function openExternal(url){
+ let opened=null;
+ try{opened=window.open(url,'_blank','noopener')}catch(e){opened=null}
+ if(opened){return true}
+ try{
+   const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
+   document.body.appendChild(a);a.click();a.remove();
+   showLinkFallback(url);
+ }catch(e){showLinkFallback(url)}
+ return false;
+}function screen(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');$('footer').classList.toggle('hidden',id!=='journalScreen')}
+function toggleProjectForm(){$('projectForm').classList.toggle('hidden')}
+function createProject(){
+ if(!$('pName').value.trim()||!$('pNo').value.trim())return alert('יש למלא שם ומספר פרויקט.');
+ if(db.projects.some(x=>x.number===$('pNo').value.trim()))return alert('מספר הפרויקט כבר קיים במערכת. יש להזין מספר ייחודי.');
+ const project={
+   id:uid(),
+   contacts:[],
+   contractors:[],
+   documents:[],
+   executionPlan:null,
+   executionPlanNote:'',
+   name:$('pName').value.trim(),
+   number:$('pNo').value.trim(),
+   client:$('pClient').value.trim(),
+   manager:$('pManager').value.trim(),
+   location:$('pLocation').value.trim(),
+   status:$('pStatus').value
+ };
+ db.projects.push(project);
+ if(project.manager && !db.managers.includes(project.manager)) db.managers.push(project.manager);
+ persist();
+ refreshMasterLists();
+ $('projectForm').classList.add('hidden');
+ ['pName','pNo','pClient','pManager','pLocation'].forEach(id=>$(id).value='');
+ renderProjects();
+ openProject(project.id);
+}
+function renderProjects(){
+ refreshMasterLists();
+ $('projectsGrid').innerHTML='';
+ const term=($('projectSearch')?.value||'').trim().toLowerCase();
+ const projects=(db.projects||[]).filter(p=>{
+   if(!term)return true;
+   return (p.name||'').toLowerCase().includes(term) || (p.client||'').toLowerCase().includes(term);
+ });
+ if(!projects.length){
+   $('projectsGrid').innerHTML='<div class="muted">לא נמצאו פרויקטים מתאימים.</div>';
+   return;
+ }
+ projects.forEach(p=>{
+  const js=db.journals.filter(j=>j.projectId===p.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const todayExists=js.some(j=>j.date===today());
+  $('projectsGrid').insertAdjacentHTML('beforeend',`<div class="project-card">
+   <span class="badge">${p.status}</span><h3>${p.name}</h3>
+   <div class="meta">מספר: ${p.number}<br>מזמין: ${p.client||'—'}<br>מנהל: ${p.manager||'—'}<br>יומן היום: ${todayExists?'נפתח':'טרם נפתח'}<br>יומן אחרון: ${js[0]?.date||'—'}</div>
+   <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="primary" onclick="openProject('${p.id}')">כניסה לפרויקט</button>
+    <button class="danger" onclick="moveProjectToRecycleBin('${p.id}')">העבר לסל מחזור</button>
+   </div>
+  </div>`)
+ })
+}
+
+
+function openProject(id){
+ projectId=id;
+ const p=db.projects.find(x=>x.id===id);
+ if(!p){alert('הפרויקט לא נמצא.');return;}
+ p.contractors=p.contractors||[];
+ p.contacts=p.contacts||[];
+ p.documents=p.documents||[];
+ p.executionPlan=p.executionPlan||null;
+ p.executionPlanNote=p.executionPlanNote||'';
+ $('projectTitle').textContent=p.name;
+ $('projectNameEdit').value=p.name;
+ $('projectStatus').textContent=p.status;
+ $('projectNumber').value=p.number;
+ $('projectClient').value=p.client;
+ $('projectManager').innerHTML=managerOptionsHtml(p.manager);
+ $('projectManager').value=p.manager;
+ $('projectNameEdit').readOnly=true;
+ $('projectNumber').readOnly=true;
+ $('projectClient').readOnly=true;
+ $('projectManager').disabled=true;
+ projectEditMode=false;
+ $('projectEditActions').classList.add('hidden');
+ $('contactsPanel').classList.add('hidden');
+ 
+ $('executionPlanPanel').classList.add('hidden');
+ $('projectLibraryPanel').classList.add('hidden');
+ refreshMasterLists();
+ renderJournals();
+ screen('projectScreen');
+}
+
+
+function managerOptionsHtml(selected=''){
+ return '<option value="">בחר...</option>'+
+ (db.managers||[]).map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('')+
+ '<option value="__new__">הוסף מנהל פרויקט חדש</option><option value="__remove__">הסר מנהל פרויקט מהרשימה</option>';
+}
+async function handleManagerSelect(select){
+ if(select.value==='__new__'){
+   const name=await customPrompt('שם מנהל הפרויקט החדש:');
+   if(!name){select.value='';return;}
+   const clean=name.trim();
+   if(!clean){select.value='';return;}
+   if(clean&&!db.managers.includes(clean))db.managers.push(clean);
+   persist();refreshMasterLists();select.value=clean;return;
+ }
+ if(select.value==='__remove__'){
+   inlineRemoveValue(db.managers,'שם מנהל הפרויקט',v=>lockedJournalUses('manager',v),v=>{
+     db.managers=db.managers.filter(x=>x!==v);
+     db.projects.forEach(p=>{if(p.manager===v)p.manager='';});
+   },select);
+ }
+}
+function handleNewManagerSelect(select){handleManagerSelect(select)}
+function handleExistingManagerSelect(select){handleManagerSelect(select)}
+function buildContractorOptions(selected=''){
+ const project=db.projects.find(x=>x.id===projectId);
+ const merged=[...(db.contractors||[])];
+ ((project&&project.contractors)||[]).forEach(x=>{
+   if(!merged.find(y=>y.name===x.name))merged.push(x);
+ });
+ return merged.map(x=>`<option value="${esc(x.name)}" ${x.name===selected?'selected':''}>${esc(x.name)}</option>`).join('');
+}
+function refreshContractorSelects(selectedElement=null,selectedValue=''){
+ document.querySelectorAll('select[data-k="contractor"]').forEach(select=>{
+   const current=select===selectedElement ? selectedValue : select.value;
+   select.innerHTML=
+     '<option value="">בחר...</option>'+
+     buildContractorOptions(current)+
+     '<option value="__new__">הוסף קבלן חדש</option>'+
+     '<option value="__remove__">הסר קבלן מהרשימה</option>';
+   if(current && current!=='__new__' && current!=='__remove__')select.value=current;
+ });
+}
+async function handleContractorSelect(select){
+ if(select.value==='__new__'){
+   const name=await customPrompt('שם הקבלן החדש:');
+   if(!name){select.value='';return;}
+   const clean=name.trim();
+   if(!clean){select.value='';return;}
+
+   db.contractors=db.contractors||[];
+   let contractor=db.contractors.find(x=>x.name===clean);
+   if(!contractor){
+     contractor={name:clean,trade:'',leader:''};
+     db.contractors.push(contractor);
+   }
+
+   const project=db.projects.find(x=>x.id===projectId);
+   if(!project){
+     alert('לא נמצא פרויקט פעיל.');
+     select.value='';
+     return;
+   }
+   project.contractors=project.contractors||[];
+   if(!project.contractors.find(x=>x.name===clean)){
+     project.contractors.push({...contractor});
+   }
+
+   persist();
+   refreshContractorSelects(select,clean);
+   select.value=clean;
+   applyKnownContractor(select);
+   autosave();
+   return;
+ }
+
+ if(select.value==='__remove__'){
+   const names=[...new Set((db.contractors||[]).map(x=>x.name).filter(Boolean))];
+   inlineRemoveValue(
+     names,
+     'שם הקבלן',
+     value=>lockedJournalUses('contractor',value),
+     value=>{
+       db.contractors=db.contractors.filter(x=>x.name!==value);
+       db.projects.forEach(p=>{
+         p.contractors=(p.contractors||[]).filter(x=>x.name!==value);
+       });
+       setTimeout(()=>refreshContractorSelects(),0);
+     },
+     select
+   );
+   autosave();
+   return;
+ }
+
+ applyKnownContractor(select);
+ autosave();
+}
+
+function simpleOptions(items,selected=''){
+ return [...new Set((items||[]).filter(Boolean))]
+   .map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`)
+   .join('');
+}
+function arrayForSimpleType(type){
+ if(type==='trade')return db.trades;
+ if(type==='leader')return db.teamLeaders;
+ if(type==='location')return db.learnedLocations;
+ if(type==='changeType')return db.changeTypes;
+ if(type==='source')return db.learnedSources;
+ if(type==='action')return db.learnedActions;
+ if(type==='work')return db.learnedWorkDescriptions;
+ return [];
+}
+function lockedJournalUses(type,value){
+ return (db.journals||[]).some(j=>{
+  if(!j.locked)return false;
+  if(type==='manager'){
+   const p=(db.projects||[]).find(x=>x.id===j.projectId);
+   return p?.manager===value || j.manager===value;
+  }
+  if(type==='contractor')return (j.contractors||[]).some(x=>x.contractor===value)||(j.works||[]).some(x=>x.contractor===value);
+  if(type==='trade')return (j.contractors||[]).some(x=>x.trade===value);
+  if(type==='leader')return (j.contractors||[]).some(x=>x.leader===value);
+  if(type==='work')return (j.works||[]).some(x=>x.description===value);
+  if(type==='location')return (j.works||[]).some(x=>x.location===value);
+  if(type==='changeType')return (j.changes||[]).some(x=>x.type===value);
+  if(type==='source')return (j.changes||[]).some(x=>x.source===value);
+  if(type==='action')return (j.actions||[]).some(x=>x.description===value);
+  if(type==='responsible')return (j.actions||[]).some(x=>x.responsible===value);
+  return false;
+ });
+}
+function contactProtected(id){
+ return (db.projects||[]).some(p=>{
+  if(!(p.contacts||[]).some(c=>c.id===id))return false;
+  return (db.journals||[]).some(j=>j.projectId===p.id&&j.locked);
+ });
+}
+function inlineRemoveValue(values,label,isProtected,onRemove,select){
+ openListDeleteModal({
+   title:`הסר ${label} מהרשימה`,
+   items:values,
+   isProtected,
+   onDelete:selected=>{
+     selected.forEach(value=>onRemove(value));
+     persist();
+     if(select)select.value='';
+     if(typeof refreshMasterLists==='function')refreshMasterLists();
+   },
+   onClose:()=>{if(select)select.value='';}
+ });
+}
+async function handleSimpleSelect(select,type,label){
+ const arr=arrayForSimpleType(type);
+ if(select.value==='__new__'){
+  const value=await customPrompt(`${label} חדש:`);
+  if(!value){select.value='';return;}
+  const clean=value.trim();
+  if(!clean){select.value='';return;}
+  if(clean&&!arr.includes(clean))arr.push(clean);
+  persist();
+  select.innerHTML='<option value="">בחר...</option>'+simpleOptions(arr,clean)+`<option value="__new__">הוסף ${label} חדש</option><option value="__remove__">הסר ${label} מהרשימה</option>`;
+  select.value=clean;
+  return;
+ }
+ if(select.value==='__remove__'){
+  inlineRemoveValue(arr,label,v=>lockedJournalUses(type,v),v=>{
+   const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);
+  },select);
+  select.innerHTML='<option value="">בחר...</option>'+simpleOptions(arr,'')+`<option value="__new__">הוסף ${label} חדש</option><option value="__remove__">הסר ${label} מהרשימה</option>`;
+ }
+}
+function buildWorkDescriptionOptions(selected=''){
+ return simpleOptions(db.learnedWorkDescriptions||[],selected);
+}
+async function handleWorkDescriptionSelect(select){
+ if(select.value==='__new__'){
+  const value=await customPrompt('תיאור העבודה החדש:');
+  if(!value){select.value='';return;}
+  const clean=value.trim();
+  if(!clean){select.value='';return;}
+  if(clean&&!db.learnedWorkDescriptions.includes(clean))db.learnedWorkDescriptions.push(clean);
+  persist();
+  select.innerHTML='<option value="">בחר...</option>'+buildWorkDescriptionOptions(clean)+'<option value="__new__">הוסף תיאור עבודה חדש</option><option value="__remove__">הסר תיאור עבודה מהרשימה</option>';
+  select.value=clean;
+  return;
+ }
+ if(select.value==='__remove__'){
+  inlineRemoveValue(db.learnedWorkDescriptions,'תיאור העבודה',v=>lockedJournalUses('work',v),v=>{
+   db.learnedWorkDescriptions=db.learnedWorkDescriptions.filter(x=>x!==v);
+  },select);
+  select.innerHTML='<option value="">בחר...</option>'+buildWorkDescriptionOptions('')+'<option value="__new__">הוסף תיאור עבודה חדש</option><option value="__remove__">הסר תיאור עבודה מהרשימה</option>';
+ }
+}
+
+
+let pendingListDeletion=null;
+
+function openListDeleteModal({title,items,isProtected,onDelete,onClose}){
+ const modal=$('listDeleteModal');
+ const wrap=$('listDeleteItems');
+ $('listDeleteTitle').textContent=title||'הסרת פריטים מהרשימה';
+ wrap.innerHTML='';
+
+ const unique=[...new Set((items||[]).filter(Boolean))];
+ if(!unique.length){
+   wrap.innerHTML='<div class="muted">הרשימה ריקה.</div>';
+   $('confirmListDeleteBtn').disabled=true;
+ }else{
+   $('confirmListDeleteBtn').disabled=false;
+   unique.forEach((value,index)=>{
+     const protectedItem=!!isProtected(value);
+     wrap.insertAdjacentHTML('beforeend',`
+       <label class="list-choice ${protectedItem?'protected':''}">
+         <input type="checkbox" value="${encodeURIComponent(value)}" ${protectedItem?'disabled':''}>
+         <span>${esc(value)}</span>
+         ${protectedItem?'<span class="muted">מוגן ביומן נעול</span>':''}
+       </label>`);
+   });
+ }
+ pendingListDeletion={onDelete,onClose};
+ modal.classList.remove('hidden');
+}
+function closeListDeleteModal(){
+ $('listDeleteModal').classList.add('hidden');
+ if(pendingListDeletion?.onClose)pendingListDeletion.onClose();
+ pendingListDeletion=null;
+}
+async function confirmListDelete(){
+ if(!pendingListDeletion)return;
+ const selected=[...document.querySelectorAll('#listDeleteItems input[type="checkbox"]:checked')]
+   .map(x=>decodeURIComponent(x.value));
+ if(!selected.length)return alert('יש לסמן לפחות פריט אחד למחיקה.');
+ if(!await customConfirm(`למחוק ${selected.length} פריטים מסומנים?`))return;
+ pendingListDeletion.onDelete(selected);
+ $('listDeleteModal').classList.add('hidden');
+ pendingListDeletion=null;
+}
+function responsibleNames(){
+ const p=(db.projects||[]).find(x=>x.id===projectId);
+ return [...new Set([
+   ...(db.responsibles||[]),
+   ...(db.managers||[]),
+   ...((db.contacts||[]).map(x=>x.name)),
+   ...((db.contractors||[]).map(x=>x.name)),
+   ...(((p&&p.contacts)||[]).map(x=>x.name)),
+   ...(((p&&p.contractors)||[]).map(x=>x.name))
+ ].filter(Boolean))];
+}
+function buildResponsibleOptions(selected=''){
+ return responsibleNames().map(x=>`<option value="${esc(x)}" ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
+}
+async function handleResponsibleSelect(select){
+ if(select.value==='__new__'){
+   const value=await customPrompt('שם האחראי החדש:');
+   if(!value){select.value='';return;}
+   const clean=value.trim();
+   if(!clean){select.value='';return;}
+   if(clean&&!db.responsibles.includes(clean))db.responsibles.push(clean);
+   persist();
+   select.innerHTML='<option value="">בחר...</option>'+buildResponsibleOptions(clean)+
+     '<option value="__new__">הוסף אחראי חדש</option>'+
+     '<option value="__remove__">הסר אחראי מהרשימה</option>';
+   select.value=clean;
+   autosave();
+   return;
+ }
+ if(select.value==='__remove__'){
+   inlineRemoveValue(
+     responsibleNames(),
+     'שם האחראי',
+     value=>lockedJournalUses('responsible',value),
+     value=>{
+       db.responsibles=db.responsibles.filter(x=>x!==value);
+       setTimeout(()=>{
+         document.querySelectorAll('select[data-k="responsible"]').forEach(s=>{
+           const current=s.value;
+           s.innerHTML='<option value="">בחר...</option>'+buildResponsibleOptions(current)+
+             '<option value="__new__">הוסף אחראי חדש</option>'+
+             '<option value="__remove__">הסר אחראי מהרשימה</option>';
+           if(current)s.value=current;
+         });
+       },0);
+     },
+     select
+   );
+   autosave();
+ }
+}
+function findResponsibleContact(name){
+ const project=(db.projects||[]).find(x=>x.id===projectId);
+ return (db.contacts||[]).find(x=>x.name===name) ||
+        ((project&&project.contacts)||[]).find(x=>x.name===name);
+}
+function sendActionReminder(button){
+ if(locked)return;
+ const row=button.closest('.action-row');
+ const description=row.querySelector('[data-k="description"]')?.value.trim()||'';
+ const responsible=row.querySelector('[data-k="responsible"]')?.value.trim()||'';
+ const dueDate=row.querySelector('[data-k="dueDate"]')?.value||'';
+ if(!description)return alert('יש להזין פעולה לפני שליחת תזכורת.');
+ if(!responsible)return alert('יש לבחור או להוסיף אחראי לביצוע הפעולה.');
+
+ const project=(db.projects||[]).find(x=>x.id===projectId);
+ const contact=findResponsibleContact(responsible);
+ const message=[
+   `שלום ${responsible},`,
+   '',
+   `תזכורת לפרויקט ${project?.name||''}.`,
+   `פעולה: ${description}.`,
+   dueDate?`תאריך יעד: ${dueDate}.`:'',
+   '',
+   'תודה.'
+ ].filter(Boolean).join('\n');
+
+ const phone=(contact?.phone||'').replace(/[^\d+]/g,'');
+ if(phone){
+   openExternal(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+ }else if(navigator.share){
+   navigator.share({text:message}).catch(()=>{});
+ }else{
+   navigator.clipboard?.writeText(message);
+   alert('לא נמצאו פרטי קשר לאחראי. נוסח התזכורת הועתק.');
+ }
+ row.dataset.reminderAt=new Date().toISOString();
+ autosave();
+}
+function refreshMasterLists(){
+ const newManager=$('pManager');
+ if(newManager){
+   const current=newManager.value;
+   newManager.innerHTML=managerOptionsHtml(current);
+   if(current && current!=='__new__')newManager.value=current;
+ }
+
+ const projectManager=$('projectManager');
+ if(projectManager){
+   const current=projectManager.value;
+   projectManager.innerHTML=managerOptionsHtml(current);
+   if(current && current!=='__new__')projectManager.value=current;
+ }
+
+ const locationList=$('locationOptions');
+ if(locationList) locationList.innerHTML=(db.learnedLocations||[]).map(x=>`<option value="${esc(x)}"></option>`).join('');
+ const workList=$('workDescriptionOptions');
+ if(workList) workList.innerHTML=(db.learnedWorkDescriptions||[]).map(x=>`<option value="${esc(x)}"></option>`).join('');
+ const sourceList=$('sourceOptions');
+ if(sourceList) sourceList.innerHTML=(db.learnedSources||[]).map(x=>`<option value="${esc(x)}"></option>`).join('');
+ const actionList=$('actionOptions');
+ if(actionList) actionList.innerHTML=(db.learnedActions||[]).map(x=>`<option value="${esc(x)}"></option>`).join('');
+}
+function toggleProjectEdit(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ projectEditMode=!projectEditMode;
+ $('projectNameEdit').readOnly=!projectEditMode;
+ $('projectNumber').readOnly=!projectEditMode;
+ $('projectClient').readOnly=!projectEditMode;
+ $('projectManager').disabled=!projectEditMode;
+ $('projectEditActions').classList.toggle('hidden',!projectEditMode);
+}
+function saveProjectEdits(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ const newName=$('projectNameEdit').value.trim();
+ const newNumber=$('projectNumber').value.trim();
+ if(!newName||!newNumber)return alert('יש למלא שם ומספר פרויקט.');
+ const duplicate=db.projects.find(x=>x.id!==p.id && x.number===newNumber);
+ if(duplicate)return alert('מספר הפרויקט כבר קיים במערכת. יש להזין מספר ייחודי.');
+ p.name=newName;
+ p.number=newNumber;
+ p.client=$('projectClient').value.trim();
+ p.manager=$('projectManager').value.trim();
+ if(p.manager && !db.managers.includes(p.manager)) db.managers.push(p.manager);
+ persist();
+ refreshMasterLists();
+ openProject(projectId);
+ alert('פרטי הפרויקט עודכנו.');
+}
+function rememberContractorsFromJournal(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ p.contractors=p.contractors||[];
+ db.contractors=db.contractors||[];
+ document.querySelectorAll('.contractor-row').forEach(row=>{
+   const name=row.querySelector('[data-k="contractor"]')?.value.trim();
+   const trade=row.querySelector('[data-k="trade"]')?.value.trim();
+   const leader=row.querySelector('[data-k="leader"]')?.value.trim();
+   if(!name)return;
+
+   let global=db.contractors.find(x=>x.name===name);
+   if(global){
+     if(trade)global.trade=trade;
+     if(leader)global.leader=leader;
+   }else{
+     global={name,trade,leader};
+     db.contractors.push(global);
+   }
+
+   let local=p.contractors.find(x=>x.name===name);
+   if(local){
+     if(trade)local.trade=trade;
+     if(leader)local.leader=leader;
+   }else{
+     p.contractors.push({name,trade,leader});
+   }
+ });
+ refreshMasterLists();
+}
+function applyKnownContractor(input){
+ const p=db.projects.find(x=>x.id===projectId);
+ const row=input.closest('.contractor-row');
+ const found=(p?.contractors||[]).find(x=>x.name===input.value.trim()) ||
+             (db.contractors||[]).find(x=>x.name===input.value.trim());
+ if(found){
+   const trade=row.querySelector('[data-k="trade"]');
+   const leader=row.querySelector('[data-k="leader"]');
+   if(trade&&!trade.value)trade.value=found.trade||'';
+   if(leader&&!leader.value)leader.value=found.leader||'';
+ }
+}
+
+function toggleContactsPanel(){
+ const panel=$('contactsPanel');
+ panel.classList.toggle('hidden');
+ if(!panel.classList.contains('hidden')) renderContacts();
+}
+function contactRowTemplate(c={}){
+ return `<div class="row-card contact-row" data-id="${c.id||uid()}">
+   <button class="danger small delete-row" onclick="removeContactRow(this)">מחיקה</button>
+   <div class="grid">
+    <div><label>שם</label><input data-k="name" value="${esc(c.name)}"></div>
+    <div><label>תפקיד</label><input data-k="role" value="${esc(c.role)}"></div>
+    <div><label>טלפון / WhatsApp</label><input data-k="phone" inputmode="tel" value="${esc(c.phone)}"></div>
+    <div><label>דוא״ל</label><input data-k="email" inputmode="email" value="${esc(c.email)}"></div>
+   </div>
+  </div>`;
+}
+function renderContacts(){
+ const p=db.projects.find(x=>x.id===projectId);
+ $('contactsList').innerHTML='';
+ (p.contacts||[]).forEach(c=>$('contactsList').insertAdjacentHTML('beforeend',contactRowTemplate(c)));
+ if(!(p.contacts||[]).length)addContactRow();
+
+ const select=$('savedContactSelect');
+ if(select){
+   const projectIds=new Set((p.contacts||[]).map(x=>x.id));
+   select.innerHTML='<option value="">בחר...</option>'+
+     (db.contacts||[]).filter(c=>!projectIds.has(c.id)).map(c=>`<option value="${c.id}">${esc(c.name)}${c.role?' · '+esc(c.role):''}</option>`).join('')+'<option value="__remove__">הסר איש קשר שמור</option>';
+ }
+}
+function addContactRow(c={}){$('contactsList').insertAdjacentHTML('beforeend',contactRowTemplate(c))}
+
+function addSavedContactToProject(){
+ const id=$('savedContactSelect')?.value;
+ if(!id)return;
+ if(id==='__remove__'){
+   const contacts=db.contacts||[];
+   inlineRemoveValue(contacts.map(c=>c.name),'שם איש הקשר',v=>{
+     const c=contacts.find(x=>x.name===v);return c?contactProtected(c.id):false;
+   },v=>{
+     const c=contacts.find(x=>x.name===v);if(!c)return;
+     db.contacts=db.contacts.filter(x=>x.id!==c.id);
+     db.projects.forEach(p=>p.contacts=(p.contacts||[]).filter(x=>x.id!==c.id));
+     setTimeout(()=>renderContacts(),0);
+   },$('savedContactSelect'));
+   return;
+ }
+ const contact=(db.contacts||[]).find(c=>c.id===id);
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!contact||!p)return;
+ p.contacts=p.contacts||[];
+ if(!p.contacts.find(c=>c.id===contact.id))p.contacts.push({...contact});
+ persist();renderContacts();
+}
+function removeContactRow(btn){btn.closest('.contact-row').remove()}
+async function saveContacts(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ const saved=[...document.querySelectorAll('.contact-row')].map(row=>{
+   const o={id:row.dataset.id||uid()};
+   row.querySelectorAll('[data-k]').forEach(e=>o[e.dataset.k]=e.value.trim());
+   return o;
+ }).filter(x=>x.name||x.phone||x.email);
+
+ p.contacts=saved;
+ db.contacts=db.contacts||[];
+db.recycleBin=db.recycleBin||[];
+ saved.forEach(c=>{
+   const existing=db.contacts.find(x=>x.id===c.id || (x.name===c.name && x.email===c.email && x.phone===c.phone));
+   if(existing)Object.assign(existing,c);
+   else db.contacts.push({...c});
+ });
+ await persist();
+ renderContacts();
+ alert('אנשי הקשר נשמרו במערכת ובפרויקט.');
+}
+function showSharePanel(){
+ const p=db.projects.find(x=>x.id===projectId);
+ $('shareContacts').innerHTML='';
+ const contacts=(p.contacts||[]).filter(c=>c.phone||c.email);
+ if(!contacts.length){
+   $('shareContacts').innerHTML='<div class="muted">לא הוגדרו אנשי קשר בפרויקט. ניתן עדיין לשלוח ללא נמען קבוע.</div>';
+ }else{
+   contacts.forEach(c=>$('shareContacts').insertAdjacentHTML('beforeend',`<label style="display:flex;align-items:center;gap:8px;border:1px solid #d8e0e7;border-radius:8px;padding:9px;margin-bottom:7px"><input type="radio" name="shareContact" value="${c.id}" style="width:auto"><span><b>${esc(c.name)}</b>${c.role?' · '+esc(c.role):''}<br><span class="muted">${esc(c.phone||'')} ${c.email?' · '+esc(c.email):''}</span></span></label>`));
+ }
+ $('sharePanel').classList.remove('hidden');
+ $('sharePanel').scrollIntoView({behavior:'smooth'});
+}
+function hideSharePanel(){$('sharePanel').classList.add('hidden')}
+function selectedContact(){
+ const id=document.querySelector('input[name="shareContact"]:checked')?.value;
+ const p=db.projects.find(x=>x.id===projectId);
+ return (p.contacts||[]).find(c=>c.id===id);
+}
+function normalizePhone(phone=''){return phone.replace(/[^\d+]/g,'').replace(/^0/,'972')}
+function shareSelectedWhatsApp(){
+ if(!prepareOutput())return;
+ const c=selectedContact(),summary=journalSummary();
+ const phone=c?.phone?normalizePhone(c.phone):'';
+ openExternal(phone?`https://wa.me/${phone}?text=${encodeURIComponent(summary)}`:`https://wa.me/?text=${encodeURIComponent(summary)}`);
+}
+function shareSelectedEmail(){
+ if(!prepareOutput())return;
+ const c=selectedContact();
+ const {p,j}=currentData();
+ if(!p||!j)return alert('לא נמצא יומן פעיל לשליחה.');
+ const to=c?.email||'';
+ const subject=`יומן עבודה – ${p.name} | ${j.date}`;
+ openExternal(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailJournalBody())}`);
+}
+
+function learnFromJournal(){
+ document.querySelectorAll('.contractor-row').forEach(row=>{
+   const trade=row.querySelector('[data-k="trade"]')?.value.trim();
+   const leader=row.querySelector('[data-k="leader"]')?.value.trim();
+   if(trade&&!db.trades.includes(trade))db.trades.push(trade);
+   if(leader&&!db.teamLeaders.includes(leader))db.teamLeaders.push(leader);
+ });
+ document.querySelectorAll('.work-row').forEach(row=>{
+   const location=row.querySelector('[data-k="location"]')?.value.trim();
+   const description=row.querySelector('[data-k="description"]')?.value.trim();
+   if(location&&!db.learnedLocations.includes(location))db.learnedLocations.push(location);
+   if(description&&!db.learnedWorkDescriptions.includes(description))db.learnedWorkDescriptions.push(description);
+ });
+ document.querySelectorAll('.change-row').forEach(row=>{
+   const type=row.querySelector('[data-k="type"]')?.value.trim();
+   const source=row.querySelector('[data-k="source"]')?.value.trim();
+   if(type&&!db.changeTypes.includes(type))db.changeTypes.push(type);
+   if(source&&!db.learnedSources.includes(source))db.learnedSources.push(source);
+ });
+ document.querySelectorAll('.action-row').forEach(row=>{
+   const action=row.querySelector('[data-k="description"]')?.value.trim();
+   const responsible=row.querySelector('[data-k="responsible"]')?.value.trim();
+   if(action&&!db.learnedActions.includes(action))db.learnedActions.push(action);
+   if(responsible&&!db.responsibles.includes(responsible))db.responsibles.push(responsible);
+ });
+ refreshMasterLists();
+}
+
+function toggleProjectLibrary(){
+ const panel=$('projectLibraryPanel');
+ panel.classList.toggle('hidden');
+ if(!panel.classList.contains('hidden'))renderProjectLibrary();
+}
+function pickProjectDocument(){
+ const input=$('projectDocumentInput');
+ input.value='';
+ input.click();
+}
+async function handleProjectDocument(event){
+ const file=event.target.files?.[0];
+ if(!file)return;
+ if(file.size>1500000){
+   alert('הקובץ גדול מדי לאב־הטיפוס. יש לצרף קובץ עד כ־1.5MB.');
+   return;
+ }
+ try{
+   const stored=await readFileData(file);
+   const p=db.projects.find(x=>x.id===projectId);
+   p.documents=p.documents||[];
+   p.documents.push({...stored,id:uid(),category:'כללי'});
+   persist();
+   renderProjectLibrary();
+ }catch(e){
+   alert('לא ניתן לשמור את המסמך.');
+ }
+}
+function renderProjectLibrary(){
+ const p=db.projects.find(x=>x.id===projectId);
+ const wrap=$('projectLibraryList');
+ wrap.innerHTML='';
+ const docs=p.documents||[];
+ if(!docs.length){
+   wrap.innerHTML='<div class="muted">לא נשמרו מסמכים בפרויקט.</div>';
+   return;
+ }
+ docs.forEach(d=>{
+   const isImage=(d.type||'').startsWith('image/');
+   wrap.insertAdjacentHTML('beforeend',`<div class="row-card">
+    <div class="grid-3">
+      <div>${isImage?`<img src="${d.data}" style="width:100%;max-height:130px;object-fit:contain;border:1px solid #d8e0e7;border-radius:8px">`:'<div style="padding:24px 8px;text-align:center;border:1px solid #d8e0e7;border-radius:8px"><b>מסמך</b></div>'}</div>
+      <div><b>${esc(d.name)}</b><br><span class="muted">${esc(d.type||'קובץ')}<br>${new Date(d.addedAt).toLocaleString('he-IL')}</span></div>
+      <div><button class="small" onclick="openProjectDocument('${d.id}')">פתיחה</button><button class="danger small" onclick="deleteProjectDocument('${d.id}')">מחיקה</button></div>
+    </div>
+   </div>`);
+ });
+}
+function openProjectDocument(id){
+ const p=db.projects.find(x=>x.id===projectId);
+ const d=(p.documents||[]).find(x=>x.id===id);
+ if(!d)return;
+ openExternal(d.data);
+}
+async function deleteProjectDocument(id){
+ const p=db.projects.find(x=>x.id===projectId);
+ const used=(db.journals||[]).some(j=>j.projectId===projectId && j.locked && (j.attachments||[]).some(a=>a.projectDocumentId===id));
+ if(used){
+   alert('לא ניתן למחוק מסמך המקושר ליומן נעול.');
+   return;
+ }
+ if(!await customConfirm('למחוק את המסמך מספריית הפרויקט?'))return;
+ p.documents=(p.documents||[]).filter(x=>x.id!==id);
+ persist();
+ renderProjectLibrary();
+}
+
+function toggleExecutionPlan(){
+ const panel=$('executionPlanPanel');
+ panel.classList.toggle('hidden');
+ if(!panel.classList.contains('hidden'))renderExecutionPlan();
+}
+function renderExecutionPlan(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ $('executionPlanNote').value=p.executionPlanNote||'';
+ const info=$('executionPlanInfo');
+ if(p.executionPlan){
+   info.innerHTML=`<div class="row-card"><b>${esc(p.executionPlan.name)}</b><br><span class="muted">${esc(p.executionPlan.type||'קובץ')} · ${new Date(p.executionPlan.addedAt).toLocaleString('he-IL')}</span></div>`;
+   $('openExecutionPlanBtn').classList.remove('hidden');
+   $('deleteExecutionPlanBtn').classList.remove('hidden');
+ }else{
+   info.innerHTML='<div class="muted">טרם צורפה תוכנית ביצוע.</div>';
+   $('openExecutionPlanBtn').classList.add('hidden');
+   $('deleteExecutionPlanBtn').classList.add('hidden');
+ }
+}
+function pickExecutionPlan(){
+ const input=$('executionPlanInput');
+ input.value='';
+ input.click();
+}
+async function handleExecutionPlan(event){
+ const file=event.target.files?.[0];
+ if(!file)return;
+ if(file.size>2000000){
+   alert('הקובץ גדול מדי לאב־הטיפוס. יש לצרף קובץ עד כ־2MB.');
+   return;
+ }
+ try{
+   const stored=await readFileData(file);
+   const p=db.projects.find(x=>x.id===projectId);
+   p.executionPlan={...stored,id:uid()};
+   persist();
+   renderExecutionPlan();
+   alert('תוכנית הביצוע נשמרה בפרויקט.');
+ }catch(e){
+   alert('לא ניתן לשמור את תוכנית הביצוע.');
+ }
+}
+function saveExecutionPlanNote(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p)return;
+ p.executionPlanNote=$('executionPlanNote').value.trim();
+ persist();
+ alert('ההערה נשמרה.');
+}
+function openExecutionPlan(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p?.executionPlan)return;
+ openExternal(p.executionPlan.data);
+}
+async function deleteExecutionPlan(){
+ const p=db.projects.find(x=>x.id===projectId);
+ if(!p?.executionPlan)return;
+ if(!await customConfirm('למחוק את תוכנית הביצוע מהפרויקט?'))return;
+ p.executionPlan=null;
+ persist();
+ renderExecutionPlan();
+}
+
+function backupSystem(){
+ const payload={
+   app:'Work Journal System',
+   version:'2.6',
+   createdAt:new Date().toISOString(),
+   data:db
+ };
+ const json=JSON.stringify(payload);
+ const encoded=btoa(unescape(encodeURIComponent(json)));
+
+ const projectCount=(db.projects||[]).length;
+ const journalCount=(db.journals||[]).length;
+ const contactCount=(db.contacts||[]).length;
+ const contractorCount=(db.contractors||[]).length;
+ const created=new Date().toLocaleString('he-IL');
+
+ const html=`<!doctype html>
+ <html lang="he" dir="rtl">
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width,initial-scale=1">
+   <title>גיבוי מערכת יומן עבודה</title>
+   <style>
+    body{font-family:Arial,sans-serif;background:#f4f6f8;color:#1f2933;margin:0;padding:24px}
+    .card{max-width:760px;margin:auto;background:#fff;border:1px solid #d8e0e7;border-radius:14px;padding:24px}
+    h1{margin-top:0;color:#0f4c81}.summary{line-height:1.9}
+    .note{background:#eef6fc;border:1px solid #c7dff2;border-radius:10px;padding:12px;margin-top:18px}
+   </style>
+ </head>
+ <body>
+  <div class="card">
+   <h1>גיבוי מערכת יומן עבודה</h1>
+   <div class="summary">
+    <b>מועד יצירת הגיבוי:</b> ${created}<br>
+    <b>גרסת מערכת:</b> 2.6<br>
+    <b>מספר פרויקטים:</b> ${projectCount}<br>
+    <b>מספר יומנים:</b> ${journalCount}<br>
+    <b>מספר אנשי קשר:</b> ${contactCount}<br>
+    <b>מספר קבלנים:</b> ${contractorCount}
+   </div>
+   <div class="note">
+    זהו קובץ גיבוי מלא. אין לערוך אותו.<br>
+    לשחזור: פתח את מערכת יומן העבודה, לחץ <b>„שחזור מגיבוי”</b> ובחר קובץ זה.
+   </div>
+   <textarea id="backupData" style="display:none">${encoded}</textarea>
+  </div>
+ </body>
+ </html>`;
+
+ const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=`גיבוי_יומן_עבודה_${new Date().toISOString().slice(0,10)}.html`;
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function pickRestoreFile(){
+ const input=$('restoreInput');
+ input.value='';
+ input.click();
+}
+async function restoreSystem(event){
+ const file=event.target.files?.[0];
+ if(!file)return;
+ try{
+   const raw=await file.text();
+   let parsed;
+
+   if(file.name.toLowerCase().endsWith('.html') || raw.includes('id="backupData"')){
+     const match=raw.match(/<textarea id="backupData"[^>]*>([\s\S]*?)<\/textarea>/i);
+     if(!match)throw new Error('לא נמצאו נתוני גיבוי בקובץ');
+     const decoded=decodeURIComponent(escape(atob(match[1].trim())));
+     parsed=JSON.parse(decoded);
+   }else{
+     parsed=JSON.parse(raw);
+   }
+
+   const restored=parsed.data||parsed;
+   if(!restored.projects||!restored.journals)throw new Error('מבנה גיבוי לא תקין');
+   if(!await customConfirm('השחזור יחליף את כל הנתונים הקיימים במערכת. להמשיך?'))return;
+
+   db=restored;
+   db.projects=db.projects||[];
+   db.journals=db.journals||[];
+   db.managers=db.managers||[];
+   db.contractors=db.contractors||[];
+   db.contacts=db.contacts||[];
+   db.recycleBin=db.recycleBin||[];
+   db.learnedLocations=db.learnedLocations||[];
+   db.learnedWorkDescriptions=db.learnedWorkDescriptions||[];
+   db.learnedSources=db.learnedSources||[];
+   db.learnedActions=db.learnedActions||[];
+db.trades=db.trades||[];
+db.teamLeaders=db.teamLeaders||[];
+db.changeTypes=db.changeTypes||['שינוי','הנחיה','דרישת מזמין','עבודה נוספת','אירוע משמעותי'];
+
+   db.projects.forEach(p=>{
+     p.contractors=p.contractors||[];
+     p.contacts=p.contacts||[];
+     p.documents=p.documents||[];
+     p.executionPlan=p.executionPlan||null;
+     p.executionPlanNote=p.executionPlanNote||'';
+   });
+
+   persist();
+   renderProjects();
+   alert('השחזור הושלם בהצלחה.');
+ }catch(e){
+   alert('לא ניתן לשחזר את קובץ הגיבוי. ודא שבחרת קובץ גיבוי שנוצר מתוך המערכת.');
+ }
+}
+async function moveProjectToRecycleBin(id){
+ const p=db.projects.find(x=>x.id===id);
+ if(!p)return;
+ if(!await customConfirm(`להעביר את הפרויקט "${p.name}" לסל המחזור?`))return;
+ const journals=db.journals.filter(j=>j.projectId===id);
+ db.recycleBin.push({
+   deletedAt:new Date().toISOString(),
+   project:p,
+   journals
+ });
+ db.projects=db.projects.filter(x=>x.id!==id);
+ db.journals=db.journals.filter(j=>j.projectId!==id);
+ persist();
+ renderProjects();
+}
+function toggleRecycleBin(){
+ const panel=$('recycleBinPanel');
+ panel.classList.toggle('hidden');
+ if(!panel.classList.contains('hidden'))renderRecycleBin();
+}
+function renderRecycleBin(){
+ const wrap=$('recycleBinList');
+ wrap.innerHTML='';
+ const items=db.recycleBin||[];
+ if(!items.length){
+   wrap.innerHTML='<div class="muted">סל המחזור ריק.</div>';
+   return;
+ }
+ items.forEach((item,index)=>{
+   const p=item.project;
+   wrap.insertAdjacentHTML('beforeend',`<div class="row-card">
+     <b>${esc(p.name)}</b><br>
+     <span class="muted">מספר: ${esc(p.number)} · נמחק: ${new Date(item.deletedAt).toLocaleString('he-IL')}</span>
+     <div class="section-actions" style="gap:8px">
+       <button onclick="restoreProjectFromRecycleBin(${index})">שחזר</button>
+       <button class="danger" onclick="permanentlyDeleteProject(${index})">מחק לצמיתות</button>
+     </div>
+   </div>`);
+ });
+}
+function restoreProjectFromRecycleBin(index){
+ const item=db.recycleBin[index];
+ if(!item)return;
+ if(db.projects.some(p=>p.number===item.project.number)){
+   alert('לא ניתן לשחזר: קיים כבר פרויקט עם אותו מספר.');
+   return;
+ }
+ db.projects.push(item.project);
+ db.journals.push(...(item.journals||[]));
+ db.recycleBin.splice(index,1);
+ persist();
+ renderRecycleBin();
+ renderProjects();
+}
+async function permanentlyDeleteProject(index){
+ const item=db.recycleBin[index];
+ if(!item)return;
+ if(!await customConfirm(`למחוק לצמיתות את הפרויקט "${item.project.name}"? פעולה זו אינה ניתנת לביטול.`))return;
+ db.recycleBin.splice(index,1);
+ persist();
+ renderRecycleBin();
+}
+function goProjects(){renderProjects();screen('projectsScreen')}function openCurrentProject(){openProject(projectId)}
+function renderJournals(){$('journalList').innerHTML='';const js=db.journals.filter(j=>j.projectId===projectId).sort((a,b)=>b.date.localeCompare(a.date));if(!js.length){$('journalList').innerHTML='<div class="muted">טרם נפתחו יומנים.</div>';return}js.forEach(j=>$('journalList').insertAdjacentHTML('beforeend',`<div class="journal-row"><strong>${j.number}</strong><span>${j.date} · ${j.day}</span><span>${j.locked?'נעול':'טיוטה'}</span><button onclick="openJournal('${j.id}')">פתיחה</button></div>`))}
+function nextNo(){return String(db.journals.filter(j=>j.projectId===projectId).length+1).padStart(3,'0')}
+function createJournalForDate(d,duplicateFrom){
+ const e=db.journals.find(j=>j.projectId===projectId&&j.date===d);
+ if(e)return openJournal(e.id);
+ const j={id:uid(),projectId,number:nextNo(),date:d,day:new Date(d+'T12:00:00').toLocaleDateString('he-IL',{weekday:'long'}),start:now(),end:'',weather:'',workStopped:false,locked:false,contractors:[],works:[],changes:[],actions:[],notes:'',safety:{enabled:false,summaryEnabled:false,summary:'',defects:'',instructions:'',actions:'',height:'',hot:'',fire:''},attachments:[],postLockUpdates:[],audit:[],signatures:[]};
+ if(duplicateFrom){
+  j.contractors=(duplicateFrom.contractors||[]).map(c=>({...c,id:uid()}));
+  j.weather=duplicateFrom.weather||'';
+ }
+ j.audit.push({time:new Date().toISOString(),action:duplicateFrom?'נוצר יומן (שוכפלו קבלנים מיומן קודם)':'נוצר יומן'});
+ db.journals.push(j);persist();openJournal(j.id);
+}
+function createTodayJournal(){createJournalForDate(today())}
+function pickJournalDate(){
+ const input=document.createElement('input');
+ input.type='date';input.value=today();input.style.position='fixed';input.style.opacity='0';input.style.pointerEvents='none';
+ document.body.appendChild(input);
+ input.addEventListener('change',()=>{if(input.value)createJournalForDate(input.value);input.remove()});
+ input.addEventListener('blur',()=>setTimeout(()=>input.remove(),300));
+ document.body.appendChild(input);
+ if(input.showPicker)try{input.showPicker()}catch(e){input.click()}else input.click();
+}
+function lastJournalForProject(excludeToday){
+ return db.journals.filter(j=>j.projectId===projectId&&(!excludeToday||j.date!==today())).sort((a,b)=>b.date.localeCompare(a.date))[0];
+}
+async function duplicateLastJournal(){
+ const last=lastJournalForProject(true);
+ if(!last)return alert('אין יומן קודם בפרויקט זה לשכפול.');
+ if(!(last.contractors||[]).length)return alert('ליומן הקודם אין קבלנים/צוותים לשכפול.');
+ const existing=db.journals.find(j=>j.projectId===projectId&&j.date===today());
+ if(existing){
+  if(existing.locked)return alert('יומן היום כבר נעול, לא ניתן לשכפל אליו.');
+  if(!await customConfirm('קיים כבר יומן פתוח להיום. לשכפל אליו את רשימת הקבלנים/הצוותים מהיומן האחרון ('+last.date+')?\nרשימת הקבלנים הנוכחית תוחלף.'))return;
+  existing.contractors=(last.contractors||[]).map(c=>({...c,id:uid()}));
+  existing.weather=existing.weather||last.weather||'';
+  persist();
+  return openJournal(existing.id);
+ }
+ createJournalForDate(today(),last);
+}
+
+
+let autosaveTimer=null;
+
+function collectRows(selector){
+ return [...document.querySelectorAll(selector)].map(row=>{
+   const item={id:row.dataset.id||uid()};
+   row.querySelectorAll('[data-k]').forEach(field=>{
+     item[field.dataset.k]=(field.value??'').toString().trim();
+   });
+   return item;
+ });
+}
+
+function saveJournal(showMessage=false){
+ const j=db.journals.find(x=>x.id===journalId);
+ if(!j)return false;
+ if(locked){
+   if(showMessage)alert('היומן נעול ואינו ניתן לעריכה.');
+   return true;
+ }
+
+ const date=$('jDate').value;
+ const duplicate=db.journals.find(x=>x.projectId===projectId&&x.id!==j.id&&x.date===date);
+ if(duplicate){
+   alert('כבר קיים יומן לתאריך זה בפרויקט.');
+   $('jDate').value=j.date||'';
+   return false;
+ }
+
+ rememberContractorsFromJournal();
+ learnFromJournal();
+ saveSignatureState();
+
+ j.date=date;
+ j.day=$('jDay').value;
+ j.start=$('jStart').value;
+ j.end=$('jEnd').value;
+ j.weather=$('jWeather').value||'';
+ j.workStopped=$('jWorkStopped').value==='true';
+ j.notes=$('notes').value||'';
+ j.contractors=collectRows('.contractor-row');
+ j.works=collectRows('.work-row');
+ j.changes=collectRows('.change-row');
+ j.actions=collectRows('.action-row').map((item,index)=>{
+   const row=document.querySelectorAll('.action-row')[index];
+   item.reminderAt=row?.dataset.reminderAt||'';
+   return item;
+ });
+ j.safety={
+   enabled:!$('safetyReport').classList.contains('hidden'),
+   summaryEnabled:!$('safetySummaryWrap').classList.contains('hidden'),
+   summary:$('safetySummary').value||'',
+   defects:$('safetyDefects').value||'',
+   instructions:$('safetyInstructions').value||'',
+   actions:$('safetyActions').value||'',
+   height:$('safetyHeight').value||'',
+   hot:$('safetyHot').value||'',
+   fire:$('safetyFire').value||''
+ };
+
+ persist();
+ if(showMessage)alert('היומן נשמר במלואו.');
+ return true;
+}
+
+function autosave(){
+ if(locked)return;
+ clearTimeout(autosaveTimer);
+ autosaveTimer=setTimeout(()=>saveJournal(false),350);
+}
+
+async function lockJournal(){
+ const j=db.journals.find(x=>x.id===journalId);
+ if(!j)return;
+ if(locked)return alert('היומן כבר נעול.');
+ if(!$('jDate').value||!$('jStart').value||!$('jEnd').value){
+   return alert('יש למלא תאריך, שעת התחלה ושעת סיום.');
+ }
+ const hasWork=[...document.querySelectorAll('.work-row [data-k="description"]')]
+   .some(x=>(x.value||'').trim());
+ if(!hasWork)return alert('יש להזין לפחות רשומת עבודה אחת.');
+ if(!await customConfirm('לאחר נעילת היומן לא ניתן לערוך אותו. להמשיך?'))return;
+ if(!saveJournal(false))return;
+
+ j.locked=true;
+ j.audit=Array.isArray(j.audit)?j.audit:[];
+ j.audit.push({time:new Date().toISOString(),action:'היומן ננעל'});
+ locked=true;
+ persist();
+ applyLock();
+ alert('היומן ננעל ונשמר.');
+}
+function rememberValue(arr,value){
+ if(value && !arr.includes(value))arr.push(value);
+}
+function normalizeJournalForOpen(j){
+ j.contractors=Array.isArray(j.contractors)?j.contractors:[];
+ j.works=Array.isArray(j.works)?j.works:[];
+ j.changes=Array.isArray(j.changes)?j.changes:[];
+ j.actions=Array.isArray(j.actions)?j.actions:[];
+ j.attachments=Array.isArray(j.attachments)?j.attachments:[];
+ j.postLockUpdates=Array.isArray(j.postLockUpdates)?j.postLockUpdates:[];
+ j.audit=Array.isArray(j.audit)?j.audit:[];
+ j.signatures=Array.isArray(j.signatures)?j.signatures:[];
+ j.notes=j.notes||'';
+
+ if(!j.safety || typeof j.safety!=='object'){
+   j.safety={enabled:false,summaryEnabled:false,summary:'',defects:'',instructions:'',actions:'',height:'',hot:'',fire:''};
+ }else{
+   j.safety.enabled=!!j.safety.enabled;
+   j.safety.summaryEnabled=!!j.safety.summaryEnabled;
+   j.safety.summary=j.safety.summary||'';
+   j.safety.defects=j.safety.defects||'';
+   j.safety.instructions=j.safety.instructions||'';
+   j.safety.actions=j.safety.actions||'';
+   j.safety.height=j.safety.height||'';
+   j.safety.hot=j.safety.hot||'';
+   j.safety.fire=j.safety.fire||'';
+ }
+
+ j.contractors=j.contractors.map(x=>{
+   if(typeof x==='string')x={contractor:x};
+   x=x||{};
+   rememberValue(db.trades,x.trade);
+   rememberValue(db.teamLeaders,x.leader);
+   if(x.contractor && !(db.contractors||[]).find(c=>c.name===x.contractor)){
+     db.contractors.push({name:x.contractor,trade:x.trade||'',leader:x.leader||''});
+   }
+   return {id:x.id||uid(),contractor:x.contractor||'',trade:x.trade||'',leader:x.leader||'',workers:x.workers||'',start:x.start||'',end:x.end||''};
+ });
+
+ j.works=j.works.map(x=>{
+   if(typeof x==='string')x={description:x};
+   x=x||{};
+   rememberValue(db.learnedWorkDescriptions,x.description);
+   rememberValue(db.learnedLocations,x.location);
+   if(x.contractor && !(db.contractors||[]).find(c=>c.name===x.contractor)){
+     db.contractors.push({name:x.contractor,trade:'',leader:''});
+   }
+   return {id:x.id||uid(),description:x.description||'',location:x.location||'',contractor:x.contractor||''};
+ });
+
+ j.changes=j.changes.map(x=>{
+   if(typeof x==='string')x={description:x};
+   x=x||{};
+   rememberValue(db.changeTypes,x.type);
+   rememberValue(db.learnedSources,x.source);
+   return {id:x.id||uid(),type:x.type||'',source:x.source||'',reference:x.reference||'',description:x.description||''};
+ });
+
+ j.actions=j.actions.map(x=>{
+   if(typeof x==='string')x={description:x};
+   x=x||{};
+   rememberValue(db.learnedActions,x.description);
+   if(x.responsible)rememberValue(db.responsibles,x.responsible);
+   return {
+     id:x.id||uid(),
+     description:x.description||'',
+     responsible:x.responsible||'',
+     dueDate:x.dueDate||'',
+     status:x.status||'פתוח',
+     note:x.note||'',
+     reminderAt:x.reminderAt||''
+   };
+ });
+
+ j.signatures=j.signatures.map(x=>{
+   if(typeof x==='string')return {id:uid(),name:'',role:'',image:x,saved:true};
+   x=x||{};
+   return {id:x.id||uid(),name:x.name||'',role:x.role||'',image:x.image||'',saved:!!x.saved};
+ });
+
+ return j;
+}
+function openJournal(id){
+ try{
+   journalId=id;
+   let j=db.journals.find(x=>x.id===id);
+   if(!j)return alert('היומן לא נמצא.');
+   const p=db.projects.find(x=>x.id===j.projectId);
+   if(!p)return alert('הפרויקט של היומן לא נמצא.');
+
+   j=normalizeJournalForOpen(j);
+   projectId=p.id;
+   locked=!!j.locked;
+
+   $('jProjectName').value=p.name||'';
+   $('jProjectNo').value=p.number||'';
+   $('jNumber').value=j.number||'';
+   $('jDate').value=j.date||'';
+   $('jDay').value=j.day||'';
+   $('jStart').value=j.start||'';
+   $('jEnd').value=j.end||'';
+   $('jManager').value=p.manager||'';
+   $('jWeather').value=j.weather||'';
+   $('jWorkStopped').value=j.workStopped?'true':'false';
+   $('notes').value=j.notes||'';
+
+   $('safetyDefects').value=j.safety.defects;
+   $('safetyInstructions').value=j.safety.instructions;
+   $('safetyActions').value=j.safety.actions;
+   $('safetyHeight').value=j.safety.height;
+   $('safetyHot').value=j.safety.hot;
+   $('safetyFire').value=j.safety.fire;
+   $('safetySummary').value=j.safety.summary;
+   setSafetyVisibility(j.safety.enabled);
+   $('safetySummaryWrap').classList.toggle('hidden',!j.safety.summaryEnabled);
+
+   ['contractors','works','changes','actions'].forEach(x=>$(x).innerHTML='');
+   j.contractors.forEach(addContractor);
+   j.works.forEach(addWork);
+   j.changes.forEach(addChange);
+   j.actions.forEach(addAction);
+
+   if(!j.contractors.length)addContractor();
+   if(!j.works.length)addWork();
+
+   renderAttachments();
+   renderPostLockUpdates();
+   renderSignatures();
+   $('sharePanel').classList.add('hidden');
+   applyLock();
+   persist();
+   screen('journalScreen');
+ }catch(error){
+   console.error('openJournal failed',error);
+   alert('לא ניתן לפתוח את היומן: '+(error?.message||'שגיאה לא ידועה'));
+ }
+}
+function applyLock(){
+ document.querySelectorAll('#journalScreen input,#journalScreen textarea,#journalScreen select').forEach(e=>{
+   if(e.id!=='postLockInput')e.disabled=locked;
+ });
+ document.querySelectorAll('#journalScreen .delete-row,#journalScreen .section-actions').forEach(e=>{
+   if(!e.closest('#postLockUpdates'))e.classList.toggle('hidden',locked);
+ });
+ $('journalBadge').textContent=locked?'נעול':'טיוטה';
+ $('journalBadge').classList.toggle('locked',locked);
+ $('lockedActions').classList.toggle('hidden',!locked);
+ $('postLockUpdates').classList.toggle('hidden',!locked);
+ renderSignatures();
+}
+function removeRow(b){b.closest('.row-card').remove();autosave()}
+function addContractor(d={}){
+ $('contractors').insertAdjacentHTML('beforeend',`<div class="row-card contractor-row" data-id="${d.id||uid()}">
+ <button class="danger small delete-row no-print" onclick="removeRow(this)">מחיקה</button>
+ <div class="grid-3">
+  <div><label>קבלן</label><select data-k="contractor" onchange="handleContractorSelect(this)">
+   <option value="">בחר...</option>${buildContractorOptions(d.contractor)}<option value="__new__">הוסף קבלן חדש</option><option value="__remove__">הסר קבלן מהרשימה</option>
+  </select></div>
+  <div><label>תחום עבודה</label><select data-k="trade" onchange="handleSimpleSelect(this,'trade','תחום עבודה')">
+   <option value="">בחר...</option>${simpleOptions(db.trades,d.trade)}<option value="__new__">הוסף תחום עבודה חדש</option><option value="__remove__">הסר תחום עבודה מהרשימה</option>
+  </select></div>
+  <div><label>ראש צוות</label><select data-k="leader" onchange="handleSimpleSelect(this,'leader','ראש צוות')">
+   <option value="">בחר...</option>${simpleOptions(db.teamLeaders,d.leader)}<option value="__new__">הוסף ראש צוות חדש</option><option value="__remove__">הסר ראש צוות מהרשימה</option>
+  </select></div>
+  <div><label>מספר עובדים</label><input type="number" min="0" data-k="workers" value="${esc(d.workers)}"></div>
+  <div><label>התחלה</label><input type="time" data-k="start" value="${esc(d.start)}"></div>
+  <div><label>סיום</label><input type="time" data-k="end" value="${esc(d.end)}"></div>
+ </div></div>`);
+}
+function addWork(d={}){
+ $('works').insertAdjacentHTML('beforeend',`<div class="row-card work-row" data-id="${d.id||uid()}">
+ <button class="danger small delete-row no-print" onclick="removeRow(this)">מחיקה</button>
+ <div class="grid-3">
+  <div style="grid-column:span 2"><label>תיאור העבודה</label><select data-k="description" onchange="handleWorkDescriptionSelect(this)">
+   <option value="">בחר...</option>${buildWorkDescriptionOptions(d.description)}<option value="__new__">הוסף תיאור עבודה חדש</option><option value="__remove__">הסר תיאור עבודה מהרשימה</option>
+  </select></div>
+  <div><label>מיקום</label><select data-k="location" onchange="handleSimpleSelect(this,'location','מיקום')">
+   <option value="">בחר...</option>${simpleOptions(db.learnedLocations,d.location)}<option value="__new__">הוסף מיקום חדש</option><option value="__remove__">הסר מיקום מהרשימה</option>
+  </select>
+  <label style="margin-top:8px">קבלן מבצע</label><select data-k="contractor" onchange="handleContractorSelect(this)">
+   <option value="">בחר...</option>${buildContractorOptions(d.contractor)}<option value="__new__">הוסף קבלן חדש</option><option value="__remove__">הסר קבלן מהרשימה</option>
+  </select></div>
+ </div></div>`);
+}
+function addChange(d={}){
+ $('changes').insertAdjacentHTML('beforeend',`<div class="row-card change-row" data-id="${d.id||uid()}">
+ <button class="danger small delete-row no-print" onclick="removeRow(this)">מחיקה</button>
+ <div class="grid-3">
+  <div><label>סוג</label><select data-k="type" onchange="handleSimpleSelect(this,'changeType','סוג רשומה')">
+   <option value="">בחר...</option>${simpleOptions(db.changeTypes,d.type)}<option value="__new__">הוסף סוג רשומה חדש</option><option value="__remove__">הסר סוג רשומה מהרשימה</option>
+  </select></div>
+  <div><label>מקור / יוזם</label><select data-k="source" onchange="handleSimpleSelect(this,'source','מקור / יוזם')">
+   <option value="">בחר...</option>${simpleOptions(db.learnedSources,d.source)}<option value="__new__">הוסף מקור / יוזם חדש</option><option value="__remove__">הסר מקור / יוזם מהרשימה</option>
+  </select></div>
+  <div><label>אסמכתה</label><input data-k="reference" value="${esc(d.reference)}"></div>
+  <div style="grid-column:1/-1"><label>תיאור</label><textarea data-k="description">${d.description||''}</textarea></div>
+ </div></div>`);
+}
+function addAction(d={}){
+ $('actions').insertAdjacentHTML('beforeend',`<div class="row-card action-row" data-id="${d.id||uid()}" data-reminder-at="${esc(d.reminderAt||'')}">
+ <button class="danger small delete-row no-print" onclick="removeRow(this)">מחיקה</button>
+ <div class="grid-3">
+  <div><label>פעולה להמשך</label><select data-k="description" onchange="handleSimpleSelect(this,'action','פעולה')">
+   <option value="">בחר...</option>${simpleOptions(db.learnedActions,d.description)}
+   <option value="__new__">הוסף פעולה חדשה</option>
+   <option value="__remove__">הסר פעולה מהרשימה</option>
+  </select></div>
+  <div><label>אחראי</label><select data-k="responsible" onchange="handleResponsibleSelect(this)">
+   <option value="">בחר...</option>${buildResponsibleOptions(d.responsible)}
+   <option value="__new__">הוסף אחראי חדש</option>
+   <option value="__remove__">הסר אחראי מהרשימה</option>
+  </select></div>
+  <div><label>תאריך יעד</label><input type="date" data-k="dueDate" value="${esc(d.dueDate)}"></div>
+  <div><label>סטטוס</label><select data-k="status">
+   <option value="פתוח" ${(!d.status||d.status==='פתוח')?'selected':''}>פתוח</option>
+   <option value="בוצע" ${d.status==='בוצע'?'selected':''}>בוצע</option>
+  </select></div>
+  <div style="grid-column:span 2"><label>הערה</label><input data-k="note" value="${esc(d.note)}"></div>
+ </div>
+ <div class="section-actions no-print"><button class="small" onclick="sendActionReminder(this)">שלח תזכורת</button></div>
+ </div>`);
+}
+
+
+
+let signatureDrawing={};
+
+function addSignature(data={}){
+ if(locked)return;
+ const j=db.journals.find(x=>x.id===journalId);
+ j.signatures=j.signatures||[];
+ const sig={
+   id:data.id||uid(),
+   name:data.name||'',
+   role:data.role||'',
+   image:data.image||'',
+   saved:!!data.saved
+ };
+ j.signatures.push(sig);
+ persist();
+ renderSignatures();
+}
+
+function renderSignatures(){
+ const j=db.journals.find(x=>x.id===journalId);
+ const wrap=$('signatures');
+ wrap.innerHTML='';
+ const list=j.signatures||[];
+ $('signaturesEmpty').classList.toggle('hidden',list.length>0);
+
+ list.forEach((s,index)=>{
+   wrap.insertAdjacentHTML('beforeend',`<div class="row-card signature-row" data-id="${s.id}">
+     <button class="danger small delete-row no-print" onclick="removeSignature('${s.id}')">מחיקה</button>
+     <div class="grid-2">
+       <div><label>שם החותם</label><input data-k="name" value="${esc(s.name)}"></div>
+       <div><label>תפקיד</label><input data-k="role" value="${esc(s.role)}"></div>
+     </div>
+     <label style="margin-top:10px">חתימה <span id="sigstate_${s.id}" class="muted">${s.saved?"— שמורה":""}</span></label>
+     <canvas id="sig_${s.id}" class="signature-canvas" width="700" height="180"></canvas>
+     <div class="section-actions no-print" style="gap:8px">
+       <button class="small" onclick="saveSingleSignature('${s.id}')">שמור חתימה</button>
+       <button class="small" onclick="clearSignature('${s.id}')">נקה חתימה</button>
+     </div>
+   </div>`);
+   setupSignatureCanvas(s.id,s.image);
+ });
+
+ if(locked){
+   document.querySelectorAll('#signatures input').forEach(e=>e.disabled=true);
+   document.querySelectorAll('#signatures .delete-row,#signatures .section-actions').forEach(e=>e.classList.add('hidden'));
+ }
+}
+
+function setupSignatureCanvas(id,image){
+ const canvas=$(`sig_${id}`);
+ if(!canvas)return;
+ const ctx=canvas.getContext('2d');
+ ctx.lineWidth=3;
+ ctx.lineCap='round';
+ let drawing=false;
+
+ if(image){
+   const img=new Image();
+   img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   img.src=image;
+ }
+
+ const pos=e=>{
+   const r=canvas.getBoundingClientRect();
+   const p=e.touches?e.touches[0]:e;
+   return {x:(p.clientX-r.left)*(canvas.width/r.width),y:(p.clientY-r.top)*(canvas.height/r.height)};
+ };
+ const start=e=>{
+   const currentJournal=db.journals.find(x=>x.id===journalId);
+   const currentSignature=(currentJournal?.signatures||[]).find(x=>x.id===id);
+   if(locked||currentSignature?.saved)return;
+   drawing=true;
+   const p=pos(e);
+   ctx.beginPath();
+   ctx.moveTo(p.x,p.y);
+   e.preventDefault();
+ };
+ const move=e=>{
+   if(!drawing||locked)return;
+   const p=pos(e);
+   ctx.lineTo(p.x,p.y);
+   ctx.stroke();
+   e.preventDefault();
+ };
+ const end=()=>{
+   if(!drawing)return;
+   drawing=false;
+   const j=db.journals.find(x=>x.id===journalId);
+   const sig=(j.signatures||[]).find(x=>x.id===id);
+   if(sig)sig.image=canvas.toDataURL('image/png');
+   persist();
+ };
+
+ ['mousedown','touchstart'].forEach(ev=>canvas.addEventListener(ev,start,{passive:false}));
+ ['mousemove','touchmove'].forEach(ev=>canvas.addEventListener(ev,move,{passive:false}));
+ ['mouseup','mouseleave','touchend'].forEach(ev=>canvas.addEventListener(ev,end));
+}
+
+
+function saveSingleSignature(id){
+ if(locked)return;
+ const j=db.journals.find(x=>x.id===journalId);
+ const sig=(j.signatures||[]).find(x=>x.id===id);
+ const canvas=$(`sig_${id}`);
+ if(!sig||!canvas)return;
+ sig.name=document.querySelector(`.signature-row[data-id="${id}"] [data-k="name"]`)?.value.trim()||'';
+ sig.role=document.querySelector(`.signature-row[data-id="${id}"] [data-k="role"]`)?.value.trim()||'';
+ sig.image=canvas.toDataURL('image/png');
+ sig.saved=true;
+ persist();
+ const state=$(`sigstate_${id}`);
+ if(state)state.textContent='— שמורה';
+ alert('החתימה נשמרה. לשינוי יש ללחוץ על „נקה חתימה”.');
+}
+function clearSignature(id){
+ if(locked)return;
+ const canvas=$(`sig_${id}`);
+ if(canvas)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+ const j=db.journals.find(x=>x.id===journalId);
+ const sig=(j.signatures||[]).find(x=>x.id===id);
+ if(sig){
+   sig.image='';
+   sig.saved=false;
+ }
+ persist();
+ const state=$(`sigstate_${id}`);
+ if(state)state.textContent='';
+}
+
+function removeSignature(id){
+ if(locked)return;
+ const j=db.journals.find(x=>x.id===journalId);
+ j.signatures=(j.signatures||[]).filter(x=>x.id!==id);
+ persist();
+ renderSignatures();
+}
+
+function saveSignatureState(){
+ const j=db.journals.find(x=>x.id===journalId);
+ if(!j)return;
+ document.querySelectorAll('.signature-row').forEach(row=>{
+   const sig=(j.signatures||[]).find(x=>x.id===row.dataset.id);
+   if(!sig)return;
+   sig.name=row.querySelector('[data-k="name"]')?.value.trim()||'';
+   sig.role=row.querySelector('[data-k="role"]')?.value.trim()||'';
+   const canvas=$(`sig_${sig.id}`);
+   if(canvas)sig.image=canvas.toDataURL('image/png');
+ });
+}
+const FULL_SAFETY_SUMMARY=`הנחיות בטיחות כלליות לביצוע העבודה
+
+הנחיות אלו מהוות חלק בלתי נפרד מהוראות העבודה באתר ומחייבות את הקבלן, עובדיו וקבלני המשנה מטעמו.
+
+1. העבודה תבוצע בהתאם להוראות כל דין, נהלי האתר והוראות המזמין.
+2. העבודה תבוצע בהשגחתו המתמדת של מנהל העבודה, הקבלן או אחראי הצוות.
+3. הקבלן אחראי לבטיחות כלל עובדיו ועובדי קבלני המשנה מטעמו, בהתאם להוראות כל דין, תקנות הבטיחות ונהלי האתר.
+4. טרם תחילת העבודה בכל יום הקבלן יתדרך את עובדיו בהתאם לסיכוני העבודה, סביבת העבודה ונהלי האתר.
+5. כל עובד יבצע רק עבודה שלגביה הוסמך, הוכשר והורשה.
+6. כלי העבודה, הציוד ואמצעי העבודה יהיו תקינים, תקניים ויופעלו בהתאם להוראות היצרן.
+7. העובדים ישתמשו בציוד מגן אישי תקין, תקני ומתאים לסוג העבודה, בהתאם לייעודו ולהוראות היצרן.
+8. עבודה בגובה תבוצע בהתאם לתקנות הבטיחות בעבודה (עבודה בגובה). הקבלן יוודא כי עובדיו הוסמכו לביצוע העבודה, התקבל היתר עבודה וקיימת מערכת בטיחות מתאימה ונקודת עיגון, ככל שנדרש.
+9. עבודה חמה תבוצע לאחר קבלת היתר עבודה. הקבלן יוודא קיום אמצעי כיבוי מתאימים ומינוי צופה אש כשיר.
+10. צופה האש יבצע השגחה על אזור העבודה במשך 60 דקות לפחות לאחר סיום העבודה החמה.
+11. הקבלן יוודא כי ברשותו כל האישורים, ההיתרים, התסקירים והבדיקות התקפים הנדרשים לביצוע העבודה.
+12. בכל אירוע חריג, תאונת עבודה, כמעט תאונה או מפגע בטיחות, תופסק העבודה באופן מיידי והאירוע ידווח לגורמים המוסמכים באתר.
+13. הקבלן יוודא כי עובדיו מכירים את נהלי החירום, דרכי המילוט, אמצעי החירום ומספרי הטלפון לשעת חירום.
+14. הקבלן יוודא כי אזור העבודה נקי, מסודר, מגודר ובטוח במשך כל העבודה ובסיום כל יום עבודה.`;
+
+function addFullSafetySummary(){
+ if(locked)return;
+ setSafetyVisibility(true);
+ $('safetySummaryWrap').classList.remove('hidden');
+ $('safetySummary').value=FULL_SAFETY_SUMMARY;
+ autoSave();
+}
+function setSafetyVisibility(enabled){
+ $('safetyEmpty').classList.toggle('hidden',enabled);
+ $('safetyReport').classList.toggle('hidden',!enabled);
+}
+function showSafetyReport(){
+ if(locked)return;
+ setSafetyVisibility(true);
+ autoSave();
+}
+async function removeSafetyReport(){
+ if(locked)return;
+ if(!await customConfirm('להסיר את דיווח הבטיחות מהיומן?'))return;
+ ['safetySummary','safetyDefects','safetyInstructions','safetyActions','safetyHeight','safetyHot','safetyFire'].forEach(id=>$(id).value='');$('safetySummaryWrap').classList.add('hidden');
+ setSafetyVisibility(false);
+ autoSave();
+}
+let attachmentMode='normal';
+function pickAttachment(accept){
+ if(locked)return;
+ attachmentMode='normal';
+ const input=$('attachmentInput');input.accept=accept;input.value='';input.click();
+}
+function pickPostLockAttachment(){
+ if(!locked)return;
+ attachmentMode='postlock';
+ const input=$('postLockInput');input.accept='*/*';input.value='';input.click();
+}
+async function fileToStored(file){
+ if(file.type.startsWith('image/')) return await compressImage(file);
+ if(file.size>1200000) throw new Error('הקובץ גדול מדי לאב־הטיפוס. יש לצרף קובץ עד כ־1.2MB.');
+ return await readFileData(file);
+}
+function readFileData(file){
+ return new Promise((resolve,reject)=>{
+  const r=new FileReader();r.onload=()=>resolve({name:file.name,type:file.type||'application/octet-stream',data:r.result,size:file.size,addedAt:new Date().toISOString()});r.onerror=()=>reject(r.error);r.readAsDataURL(file);
+ });
+}
+function compressImage(file){
+ return new Promise((resolve,reject)=>{
+  const r=new FileReader();r.onerror=()=>reject(r.error);r.onload=()=>{
+   const img=new Image();img.onerror=()=>reject(new Error('לא ניתן לקרוא את התמונה'));img.onload=()=>{
+    const max=1280,ratio=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=Math.round(img.width*ratio);c.height=Math.round(img.height*ratio);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    resolve({name:file.name.replace(/\.[^.]+$/,'.jpg'),type:'image/jpeg',data:c.toDataURL('image/jpeg',0.72),size:file.size,addedAt:new Date().toISOString()});
+   };img.src=r.result;
+  };r.readAsDataURL(file);
+ });
+}
+async function handleAttachment(event){
+ const file=event.target.files?.[0];if(!file)return;
+ try{
+  const item=await fileToStored(file),j=db.journals.find(x=>x.id===journalId);
+  j.attachments=j.attachments||[];j.attachments.push({...item,id:uid()});
+  j.audit=j.audit||[];j.audit.push({time:new Date().toISOString(),action:`צורף קובץ: ${item.name}`});
+  persist();renderAttachments();
+ }catch(e){alert(e.message||'לא ניתן לצרף את הקובץ.')}
+}
+async function handlePostLockAttachment(event){
+ const file=event.target.files?.[0];if(!file)return;
+ try{
+  const item=await fileToStored(file),j=db.journals.find(x=>x.id===journalId);
+  const update={...item,id:uid(),updateTime:new Date().toISOString()};
+  j.postLockUpdates=j.postLockUpdates||[];j.postLockUpdates.push(update);
+  j.audit=j.audit||[];j.audit.push({time:update.updateTime,action:`נוסף לאחר נעילה: ${item.name}`});
+  persist();renderPostLockUpdates();
+  alert('הקובץ נוסף כעדכון לאחר נעילה. תוכן היומן המקורי לא השתנה.');
+ }catch(e){alert(e.message||'לא ניתן לצרף את הקובץ.')}
+}
+function renderAttachments(){
+ const j=db.journals.find(x=>x.id===journalId);$('attachments').innerHTML='';
+ (j.attachments||[]).forEach(a=>$('attachments').insertAdjacentHTML('beforeend',attachmentCard(a,false)));
+ if(!(j.attachments||[]).length)$('attachments').innerHTML='<div class="muted">לא צורפו קבצים.</div>';
+}
+function renderPostLockUpdates(){
+ const j=db.journals.find(x=>x.id===journalId);$('postLockList').innerHTML='';
+ (j.postLockUpdates||[]).forEach(a=>$('postLockList').insertAdjacentHTML('beforeend',attachmentCard(a,true)));
+ if(!(j.postLockUpdates||[]).length)$('postLockList').innerHTML='<div class="muted">לא נוספו עדכונים לאחר הנעילה.</div>';
+}
+function attachmentCard(a,postLock){
+ const isImage=(a.type||'').startsWith('image/');
+ const when=new Date(a.updateTime||a.addedAt).toLocaleString('he-IL');
+ return `<div class="row-card">
+   <div class="grid-3">
+     <div>${isImage
+       ? `<img src="${a.data}" alt="${esc(a.name)}" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;border:1px solid #d8e0e7;background:#fff">`
+       : `<div style="padding:26px 8px;text-align:center;border:1px solid #d8e0e7;border-radius:8px;background:#fff"><b>מסמך</b><br><span class="muted">${esc(a.type||'קובץ')}</span></div>`}
+     </div>
+     <div><b>${esc(a.name)}</b><br><span class="muted">${esc(a.type||'קובץ')}<br>${when}</span></div>
+     <div>
+       <button class="small" onclick="openAttachment('${a.id}',${postLock})">פתיחה</button>
+       ${(!locked&&!postLock)?`<button class="danger small" onclick="deleteAttachment('${a.id}')">מחיקה</button>`:''}
+     </div>
+   </div>
+ </div>`;
+}
+function openAttachment(id,postLock){
+ const j=db.journals.find(x=>x.id===journalId),a=(postLock?j.postLockUpdates:j.attachments).find(x=>x.id===id);
+ if(!a)return;openExternal(a.data);
+}
+function deleteAttachment(id){
+ if(locked)return;const j=db.journals.find(x=>x.id===journalId);j.attachments=(j.attachments||[]).filter(x=>x.id!==id);persist();renderAttachments();
+}
+
+function validateOutputSnapshot(){
+ const {j}=currentData();
+ if(!j)return {ok:false,message:'לא נמצא יומן פעיל.'};
+
+ const visible={
+   contractors:document.querySelectorAll('.contractor-row').length,
+   works:document.querySelectorAll('.work-row').length,
+   changes:document.querySelectorAll('.change-row').length,
+   actions:document.querySelectorAll('.action-row').length
+ };
+ const snapshot={
+   contractors:(j.contractors||[]).length,
+   works:(j.works||[]).length,
+   changes:(j.changes||[]).length,
+   actions:(j.actions||[]).length
+ };
+
+ const mismatch=Object.keys(visible).find(key=>visible[key]!==snapshot[key]);
+ if(mismatch){
+   return {ok:false,message:'הפלט לא נאסף במלואו מהמסך. יש לשמור ולנסות שוב.'};
+ }
+ return {ok:true};
+}
+function prepareOutput(){
+ if(!saveJournal(false))return false;
+ const check=validateOutputSnapshot();
+ if(!check.ok){
+   alert(check.message);
+   return false;
+ }
+ return true;
+}
+function journalSummary(){
+ const {p,j}=currentData();
+ if(!p||!j)return '';
+ const out=[
+  `*יומן עבודה – ${p.name}*`,
+  `מספר פרויקט: ${p.number||'—'}`,
+  `מספר יומן: ${j.number||'—'}`,
+  `תאריך: ${j.date||'—'}${j.day?' ('+j.day+')':''}`,
+  `שעות עבודה: ${j.start||'—'}–${j.end||'—'}`,
+  `מנהל פרויקט: ${p.manager||'—'}`,
+  `מזמין: ${p.client||'—'}`,
+  `מיקום הפרויקט: ${p.location||'—'}`
+ ];
+ if(j.weather)out.push(`מזג אוויר: ${j.weather}${j.workStopped?' (הופסקה עבודה)':''}`);
+
+ const contractors=(j.contractors||[]).filter(x=>x.contractor||x.workers||x.trade||x.leader);
+ if(contractors.length){
+  out.push('','*קבלנים וכוח אדם:*');
+  contractors.forEach((x,i)=>{
+   let line=`${i+1}. ${x.contractor||'קבלן לא צוין'}`;
+   if(x.trade) line+=` | תחום: ${x.trade}`;
+   if(x.leader) line+=` | ראש צוות: ${x.leader}`;
+   if(x.workers) line+=` | עובדים: ${x.workers}`;
+   if(x.start||x.end) line+=` | שעות: ${x.start||'—'}–${x.end||'—'}`;
+   out.push(line);
+  });
+ }
+
+ const works=(j.works||[]).filter(x=>x.description||x.location||x.contractor);
+ if(works.length){
+  out.push('','*עבודה שבוצעה:*');
+  works.forEach((x,i)=>{
+   let line=`${i+1}. ${x.description||'ללא תיאור'}`;
+   if(x.location) line+=` | מיקום: ${x.location}`;
+   if(x.contractor) line+=` | קבלן: ${x.contractor}`;
+   out.push(line);
+  });
+ }
+
+ const changes=(j.changes||[]).filter(x=>x.description||x.type||x.source||x.reference);
+ if(changes.length){
+  out.push('','*שינויים / הנחיות / אירועים:*');
+  changes.forEach((x,i)=>{
+   let line=`${i+1}. ${x.type?x.type+': ':''}${x.description||'ללא תיאור'}`;
+   if(x.source) line+=` | מקור/יוזם: ${x.source}`;
+   if(x.reference) line+=` | אסמכתה: ${x.reference}`;
+   out.push(line);
+  });
+ }
+
+ if(j.safety?.enabled && (j.safety.summary||j.safety.defects||j.safety.instructions||j.safety.actions||j.safety.height||j.safety.hot||j.safety.fire)){
+  out.push('','*בטיחות:*');
+  if(j.safety.summaryEnabled&&j.safety.summary)out.push('נוספו הנחיות בטיחות כלליות לביצוע העבודה.');
+  if(j.safety.defects)out.push(`ליקויים: ${j.safety.defects}`);
+  if(j.safety.instructions)out.push(`הנחיות: ${j.safety.instructions}`);
+  if(j.safety.actions)out.push(`פעולות תיקון: ${j.safety.actions}`);
+  if(j.safety.height)out.push(`עבודה בגובה / הרמה: ${j.safety.height}`);
+  if(j.safety.hot)out.push(`עבודה חמה / חשמל: ${j.safety.hot}`);
+  if(j.safety.fire)out.push(`דרכי מילוט ומערכות אש: ${j.safety.fire}`);
+ }
+ const actions=(j.actions||[]).filter(x=>x.description||x.note||x.responsible||x.dueDate);
+ if(actions.length){
+  out.push('','*פעולות להמשך:*');
+  actions.forEach((x,i)=>{
+   let line=`${i+1}. ${x.description||'ללא תיאור'}`;
+   if(x.responsible)line+=` | אחראי: ${x.responsible}`;
+   if(x.dueDate)line+=` | יעד: ${x.dueDate}`;
+   if(x.status)line+=` | סטטוס: ${x.status}`;
+   if(x.note)line+=` | הערה: ${x.note}`;
+   out.push(line);
+  });
+ }
+
+ if(j.notes){
+  out.push('','*הערות כלליות:*',j.notes);
+ }
+
+ const signed=(j.signatures||[]).filter(x=>x.name||x.role||x.image);
+ if(signed.length){
+  out.push('','*חתימות:*');
+  signed.forEach(x=>out.push(`• ${x.name||'ללא שם'}${x.role?' — '+x.role:''}`));
+ }
+ const attachments=j.attachments||[];
+ const attachmentCount=attachments.length;
+ if(attachmentCount){
+  const imageCount=attachments.filter(x=>(x.type||'').startsWith('image/')).length;
+  const documentCount=attachmentCount-imageCount;
+  const parts=[];
+  if(imageCount)parts.push(`${imageCount} תמונות`);
+  if(documentCount)parts.push(`${documentCount} מסמכים`);
+  out.push('','*קבצים מצורפים:*',parts.join(' · '));
+ }
+ const postCount=(j.postLockUpdates||[]).length;
+ if(postCount)out.push('','*עדכונים לאחר נעילה:*',...(j.postLockUpdates||[]).map(x=>`• ${x.name} — ${new Date(x.updateTime).toLocaleString('he-IL')}`));
+
+ out.push('','היומן הופק ממערכת יומן העבודה.');
+ return out.join('\n');
+}
+function emailJournalBody(){
+ const {p,j}=currentData();
+ const lines=[];
+ lines.push(`יומן עבודה – ${p.name}`);
+ lines.push(`מספר פרויקט: ${p.number}`);
+ lines.push(`מספר יומן: ${j.number}`);
+ lines.push(`תאריך: ${j.date} (${j.day})`);
+ lines.push(`שעות עבודה: ${j.start||'—'}–${j.end||'—'}`);
+ lines.push(`מנהל פרויקט: ${p.manager||'—'}`);
+ lines.push(`מזמין: ${p.client||'—'}`);
+ lines.push(`מיקום הפרויקט: ${p.location||'—'}`);
+ if(j.weather)lines.push(`מזג אוויר: ${j.weather}${j.workStopped?' (הופסקה עבודה)':''}`);
+
+ const contractors=(j.contractors||[]).filter(x=>x.contractor||x.trade||x.leader||x.workers||x.start||x.end);
+ if(contractors.length){
+   lines.push('','קבלנים וכוח אדם:');
+   contractors.forEach((x,i)=>lines.push(
+     `${i+1}. ${x.contractor||'—'} | תחום: ${x.trade||'—'} | ראש צוות: ${x.leader||'—'} | עובדים: ${x.workers||'—'} | שעות: ${x.start||'—'}–${x.end||'—'}`
+   ));
+ }
+
+ const works=(j.works||[]).filter(x=>x.description||x.location||x.contractor);
+ if(works.length){
+   lines.push('','עבודה שבוצעה:');
+   works.forEach((x,i)=>lines.push(
+     `${i+1}. ${x.description||'—'} | מיקום: ${x.location||'—'} | קבלן: ${x.contractor||'—'}`
+   ));
+ }
+
+ const changes=(j.changes||[]).filter(x=>x.type||x.source||x.reference||x.description);
+ if(changes.length){
+   lines.push('','שינויים / הנחיות / אירועים:');
+   changes.forEach((x,i)=>lines.push(
+     `${i+1}. ${x.type||'רשומה'}: ${x.description||'—'} | מקור/יוזם: ${x.source||'—'} | אסמכתה: ${x.reference||'—'}`
+   ));
+ }
+
+ if(j.safety?.enabled){
+   lines.push('','בטיחות:');
+   if(j.safety.summaryEnabled&&j.safety.summary)lines.push(j.safety.summary);
+   if(j.safety.defects)lines.push(`ליקויי בטיחות: ${j.safety.defects}`);
+   if(j.safety.instructions)lines.push(`הנחיות שניתנו: ${j.safety.instructions}`);
+   if(j.safety.actions)lines.push(`פעולות תיקון: ${j.safety.actions}`);
+   if(j.safety.height)lines.push(`עבודה בגובה / הרמה: ${j.safety.height}`);
+   if(j.safety.hot)lines.push(`עבודה חמה / חשמל: ${j.safety.hot}`);
+   if(j.safety.fire)lines.push(`דרכי מילוט ומערכות אש: ${j.safety.fire}`);
+ }
+
+ const actions=(j.actions||[]).filter(x=>x.description||x.note||x.responsible||x.dueDate);
+ if(actions.length){
+   lines.push('','פעולות להמשך:');
+   actions.forEach((x,i)=>lines.push(
+     `${i+1}. ${x.description||'—'}`
+     +`${x.responsible?` | אחראי: ${x.responsible}`:''}`
+     +`${x.dueDate?` | יעד: ${x.dueDate}`:''}`
+     +`${x.status?` | סטטוס: ${x.status}`:''}`
+     +`${x.note?` | הערה: ${x.note}`:''}`
+   ));
+ }
+
+ if(j.notes)lines.push('','הערות כלליות:',j.notes);
+
+ const signatures=(j.signatures||[]).filter(x=>x.name||x.role||x.image);
+ if(signatures.length){
+   lines.push('','חתימות:');
+   signatures.forEach(x=>lines.push(`• ${x.name||'ללא שם'}${x.role?' — '+x.role:''}`));
+ }
+
+ const attachments=j.attachments||[];
+ if(attachments.length){
+   const images=attachments.filter(x=>(x.type||'').startsWith('image/')).length;
+   const documents=attachments.length-images;
+   lines.push('','קבצים מצורפים:');
+   if(images)lines.push(`• ${images} תמונות`);
+   if(documents)lines.push(`• ${documents} מסמכים`);
+   attachments.forEach(x=>lines.push(`• ${x.name}`));
+ }
+
+ if((j.postLockUpdates||[]).length){
+   lines.push('','עדכונים לאחר נעילה:');
+   j.postLockUpdates.forEach(x=>lines.push(`• ${x.name} — ${new Date(x.updateTime).toLocaleString('he-IL')}`));
+ }
+
+ lines.push('','היומן הופק ממערכת יומן העבודה.');
+ return lines.join('\n');
+}
+
+async function shareJournal(){
+ if(!prepareOutput())return;
+ const p=db.projects.find(x=>x.id===projectId),j=db.journals.find(x=>x.id===journalId),text=journalSummary();
+ try{
+  if(navigator.share){await navigator.share({title:`יומן עבודה – ${p.name}`,text});return;}
+ }catch(e){if(e.name==='AbortError')return;}
+ const useWhatsApp=await customConfirm('שיתוף ישיר אינו נתמך בדפדפן זה. אישור לפתיחת WhatsApp; ביטול לפתיחת מייל.');
+ if(useWhatsApp)openExternal('https://wa.me/?text='+encodeURIComponent(text));
+ else openExternal('mailto:?subject='+encodeURIComponent(`יומן עבודה – ${p.name} | ${j.date}`)+'&body='+encodeURIComponent(emailJournalBody()));
+}
+function currentData(){
+ const p=db.projects.find(x=>x.id===projectId);
+ const stored=db.journals.find(x=>x.id===journalId);
+ if(!stored)return {p,j:null};
+
+ // Build an exact snapshot from the visible journal screen.
+ const j={...stored};
+ const journalVisible=$('journalScreen') && $('journalScreen').classList.contains('active');
+ if(journalVisible){
+   j.date=$('jDate')?.value||stored.date||'';
+   j.day=$('jDay')?.value||stored.day||'';
+   j.start=$('jStart')?.value||stored.start||'';
+   j.end=$('jEnd')?.value||stored.end||'';
+   j.notes=$('notes')?.value||'';
+   j.contractors=collectRows('.contractor-row');
+   j.works=collectRows('.work-row');
+   j.changes=collectRows('.change-row');
+   j.actions=collectRows('.action-row');
+   j.safety={
+     enabled:$('safetyReport')?!$('safetyReport').classList.contains('hidden'):false,
+     summaryEnabled:$('safetySummaryWrap')?!$('safetySummaryWrap').classList.contains('hidden'):false,
+     summary:$('safetySummary')?.value||'',
+     defects:$('safetyDefects')?.value||'',
+     instructions:$('safetyInstructions')?.value||'',
+     actions:$('safetyActions')?.value||'',
+     height:$('safetyHeight')?.value||'',
+     hot:$('safetyHot')?.value||'',
+     fire:$('safetyFire')?.value||''
+   };
+   j.attachments=stored.attachments||[];
+   j.postLockUpdates=stored.postLockUpdates||[];
+   j.signatures=(stored.signatures||[]).map(x=>({...x}));
+   document.querySelectorAll('.signature-row').forEach(row=>{
+     const sig=j.signatures.find(x=>x.id===row.dataset.id);
+     if(!sig)return;
+     sig.name=row.querySelector('[data-k="name"]')?.value.trim()||sig.name||'';
+     sig.role=row.querySelector('[data-k="role"]')?.value.trim()||sig.role||'';
+     const canvas=$(`sig_${sig.id}`);
+     if(canvas) sig.image=canvas.toDataURL('image/png');
+   });
+ }
+ return {p,j};
+}
+function h(v=''){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function reportHtml(){
+ const {p,j}=currentData();
+ const generatedAt=new Date().toLocaleString('he-IL');
+ const escHtml=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+ const contractorRows=(j.contractors||[])
+  .filter(x=>x.contractor||x.trade||x.leader||x.workers||x.start||x.end)
+  .map(x=>`<tr>
+    <td>${escHtml(x.contractor)}</td>
+    <td>${escHtml(x.trade)}</td>
+    <td>${escHtml(x.leader)}</td>
+    <td>${escHtml(x.workers)}</td>
+    <td>${escHtml(x.start)}</td>
+    <td>${escHtml(x.end)}</td>
+  </tr>`).join('');
+
+ const workRows=(j.works||[])
+  .filter(x=>x.description||x.location||x.contractor)
+  .map((x,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${escHtml(x.description)}</td>
+    <td>${escHtml(x.location)}</td>
+    <td>${escHtml(x.contractor)}</td>
+  </tr>`).join('');
+
+ const changeRows=(j.changes||[])
+  .filter(x=>x.type||x.description||x.source||x.reference)
+  .map((x,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${escHtml(x.type)}</td>
+    <td>${escHtml(x.description)}</td>
+    <td>${escHtml(x.source)}</td>
+    <td>${escHtml(x.reference)}</td>
+  </tr>`).join('');
+
+ const actionRows=(j.actions||[])
+  .filter(x=>x.description||x.note||x.responsible||x.dueDate)
+  .map((x,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${escHtml(x.description)}</td>
+    <td>${escHtml(x.responsible)}</td>
+    <td>${escHtml(x.dueDate)}</td>
+    <td>${escHtml(x.status||'פתוח')}</td>
+    <td>${escHtml(x.note)}</td>
+  </tr>`).join('');
+
+ const safety=j.safety||{};
+ const signatureBlocks=(j.signatures||[]).filter(x=>x.name||x.role||x.image).map(x=>`
+ <div class="signature-print">
+   <div><b>${escHtml(x.name||'')}</b>${x.role?` — ${escHtml(x.role)}`:''}</div>
+   ${x.image?`<img src="${x.image}" alt="חתימה">`:''}
+ </div>`).join('');
+
+ const attachmentRows=(j.attachments||[]).map((x,i)=>`<tr><td>${i+1}</td><td><a href="${x.data}" download="${escHtml(x.name)}">${escHtml(x.name)}</a></td><td>${escHtml(x.type||'קובץ')}</td><td>${new Date(x.addedAt).toLocaleString('he-IL')}</td></tr>`).join('');
+ const attachmentImages=(j.attachments||[]).filter(x=>(x.type||'').startsWith('image/')).map((x,i)=>`
+ <div class="photo">
+   <img src="${x.data}" alt="${escHtml(x.name)}">
+   <div>${i+1}. ${escHtml(x.name)}</div>
+ </div>`).join('');
+ const postLockImages=(j.postLockUpdates||[]).filter(x=>(x.type||'').startsWith('image/')).map((x,i)=>`
+ <div class="photo">
+   <img src="${x.data}" alt="${escHtml(x.name)}">
+   <div>${i+1}. ${escHtml(x.name)} — ${new Date(x.updateTime).toLocaleString('he-IL')}</div>
+ </div>`).join('');
+ const updateRows=(j.postLockUpdates||[]).map((x,i)=>`<tr><td>${i+1}</td><td><a href="${x.data}" download="${escHtml(x.name)}">${escHtml(x.name)}</a></td><td>${escHtml(x.type||'קובץ')}</td><td>${new Date(x.updateTime).toLocaleString('he-IL')}</td></tr>`).join('');
+
+ const outputAudit={contractors:(j.contractors||[]).length,works:(j.works||[]).length,changes:(j.changes||[]).length,actions:(j.actions||[]).length};
+ return `<!doctype html>
+ <html lang="he" dir="rtl">
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width">
+   <title>יומן ${escHtml(j.number)} - ${escHtml(p.name)}</title><!-- rows:${outputAudit.contractors}/${outputAudit.works}/${outputAudit.changes}/${outputAudit.actions} -->
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@600;700;800&family=Heebo:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+   <style>
+     @page{size:A4;margin:14mm 12mm 16mm}
+     *{box-sizing:border-box}
+     :root{--navy:#0c3a5c;--navy-2:#082a44;--amber:#b0700e;--line:#c7d2db;--muted:#5c7286}
+     body{font-family:'Heebo',Arial,sans-serif;direction:rtl;margin:0;color:#17242f;line-height:1.5;font-size:12.5px;background:#fff}
+     .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+     .report-head{border-bottom:3px solid var(--amber);padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+     .report-brand{display:flex;align-items:center;gap:10px}
+     .report-mark{width:30px;height:30px;border-radius:7px;flex:0 0 auto;background:linear-gradient(155deg,var(--amber),#8a5709);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+     .report-title{font-family:'Rubik',sans-serif;font-size:23px;font-weight:800;color:var(--navy-2);margin:0}
+     .report-subtitle{font-size:13.5px;color:var(--muted);margin-top:2px}
+     .report-status{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--navy);background:#e6edf3;border:1px solid var(--line);border-radius:5px;padding:4px 9px;white-space:nowrap}
+     table.title-block{border-collapse:collapse;width:100%;margin-bottom:20px;border:1.5px solid var(--navy)}
+     table.title-block th,table.title-block td{border:1px solid var(--line);padding:6px 9px;text-align:right;vertical-align:top}
+     table.title-block th{background:#eef2f6;font-family:'Rubik',sans-serif;font-size:10px;font-weight:600;color:var(--muted);width:1%;white-space:nowrap}
+     table.title-block td{font-size:13px;font-weight:600}
+     @media(max-width:700px){
+       table.title-block,table.title-block tbody,table.title-block tr,table.title-block th,table.title-block td{display:block;width:100%}
+       table.title-block{border:1.5px solid var(--navy);border-bottom:0}
+       table.title-block tr{border-bottom:1px solid var(--line)}
+       table.title-block th{border:0;border-top:1px solid var(--line);padding:7px 10px 1px;font-size:10.5px;white-space:normal}
+       table.title-block tr th:first-child{border-top:0}
+       table.title-block td{border:0;padding:0 10px 8px;font-size:15px}
+     }
+     h1{font-size:24px;margin:0}
+     h2{font-family:'Rubik',sans-serif;font-size:15.5px;font-weight:700;color:var(--navy-2);border-bottom:2px solid var(--line);border-right:4px solid var(--amber);padding:4px 10px;margin:22px 0 9px;page-break-after:avoid;background:#f7f9fb}
+     h3{font-size:14px;margin:15px 0 7px;page-break-after:avoid;font-family:'Rubik',sans-serif}
+     p{white-space:pre-wrap;margin:6px 0}
+     table{border-collapse:collapse;width:100%;margin-top:8px;table-layout:auto;page-break-inside:auto}
+     thead{display:table-header-group}
+     tr{page-break-inside:avoid;page-break-after:auto}
+     th,td{border:1px solid #ccd6de;padding:7px 8px;text-align:right;vertical-align:top;overflow-wrap:anywhere}
+     th{background:var(--navy);color:#fff;font-weight:600;font-family:'Rubik',sans-serif;font-size:11.5px}
+     tbody tr:nth-child(even){background:#f5f8fa}
+     .empty{color:#6b7785;text-align:center;padding:14px}
+     .gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+     .photo{page-break-inside:avoid;border:1px solid var(--line);padding:8px;border-radius:6px;text-align:center;background:#fff}
+     .photo img{width:100%;max-height:330px;object-fit:contain}
+     .photo div{margin-top:6px;font-size:11px;overflow-wrap:anywhere}
+     .signatures-print{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+     .signature-print{border:1.5px solid var(--navy);padding:10px;border-radius:6px;page-break-inside:avoid;min-height:125px;position:relative}
+     .signature-print::before{content:'אישור';position:absolute;top:-9px;right:10px;background:#fff;padding:0 6px;font-family:'Rubik',sans-serif;font-size:10px;font-weight:700;color:var(--amber)}
+     .signature-print img{width:100%;max-height:105px;object-fit:contain}
+     .report-footer{margin-top:22px;padding-top:8px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:15px;font-family:'JetBrains Mono',monospace}
+     .print-button{padding:9px 14px;border:0;border-radius:7px;background:var(--navy);color:#fff;font-size:13px;font-family:'Heebo',sans-serif;font-weight:600;cursor:pointer}
+     .no-print-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+     .no-print-tip{background:#fff4e5;border:1px solid #f0c987;border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:12px;color:#5c4108;line-height:1.6}
+     @media(max-width:700px){body{font-size:12px}.report-head{display:block}.gallery,.signatures-print{grid-template-columns:1fr}}
+     @media print{.no-print-bar,.no-print-tip{display:none}a{color:#111;text-decoration:none}.report-footer{position:relative}}
+   </style>
+ </head>
+ <body>
+   <div class="no-print-bar">
+   <button class="print-button" onclick="window.print()">הדפסה / שמירה כ־PDF</button>
+   <button class="print-button" style="background:#455a70" onclick="const b=new Blob([document.documentElement.outerHTML],{type:'text/html;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='${escHtml((p.number||'')+'_'+(j.date||'')+'_'+(j.number||''))}.html';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)">הורד כקובץ HTML</button>
+   </div>
+   <div class="no-print-tip">
+     הקישורים למעלה דורשים JavaScript פעיל. אם הקובץ נפתח כאן דרך תצוגה מקדימה (למשל תוך כדי שיתוף ב-WhatsApp) והכפתורים לא מגיבים — פתח את הקובץ במפורש דרך אפליקציית דפדפן (Chrome / Safari), ואז הדפסה → שמירה כ־PDF.
+   </div>
+
+   <div class="report-head">
+    <div class="report-brand">
+      <div class="report-mark"></div>
+      <div>
+        <div class="report-title">יומן עבודה יומי</div>
+        <div class="report-subtitle">${escHtml(p.name)}</div>
+      </div>
+    </div>
+    <div class="report-status">${j.locked?'נעול · מוכן להפצה':'טיוטה'}</div>
+   </div>
+
+   <table class="title-block">
+    <tr>
+      <th>מס' פרויקט</th><td class="mono">${escHtml(p.number)}</td>
+      <th>מס' יומן</th><td class="mono">${escHtml(j.number)}</td>
+      <th>תאריך</th><td class="mono">${escHtml(j.date)} · ${escHtml(j.day)}</td>
+    </tr>
+    <tr>
+      <th>שעות עבודה</th><td class="mono">${escHtml(j.start)}–${escHtml(j.end)}</td>
+      <th>מנהל פרויקט</th><td>${escHtml(p.manager)}</td>
+      <th>מזמין</th><td>${escHtml(p.client)}</td>
+    </tr>
+    <tr>
+      <th>מיקום</th><td colspan="3">${escHtml(p.location)}</td>
+      <th>מזג אוויר</th><td>${j.weather?escHtml(j.weather)+(j.workStopped?' — הופסקה עבודה':''):'—'}</td>
+    </tr>
+   </table>
+
+   <h2>קבלנים וכוח אדם</h2>
+   <table>
+     <thead><tr><th>קבלן</th><th>תחום</th><th>ראש צוות</th><th>מספר עובדים</th><th>התחלה</th><th>סיום</th></tr></thead>
+     <tbody>${contractorRows || '<tr><td colspan="6" class="empty">לא הוזנו נתונים</td></tr>'}</tbody>
+   </table>
+
+   <h2>עבודה שבוצעה</h2>
+   <table>
+     <thead><tr><th>#</th><th>תיאור העבודה</th><th>מיקום</th><th>קבלן מבצע</th></tr></thead>
+     <tbody>${workRows || '<tr><td colspan="4" class="empty">לא הוזנו נתונים</td></tr>'}</tbody>
+   </table>
+
+   <h2>שינויים / הנחיות / אירועים</h2>
+   <table>
+     <thead><tr><th>#</th><th>סוג</th><th>תיאור</th><th>מקור / יוזם</th><th>אסמכתה</th></tr></thead>
+     <tbody>${changeRows || '<tr><td colspan="5" class="empty">לא הוזנו נתונים</td></tr>'}</tbody>
+   </table>
+
+   ${safety.enabled ? `<h2>בטיחות</h2>
+   <table>
+    <tbody>
+     ${safety.summaryEnabled&&safety.summary?`<tr><th>תקציר בטיחות מלא</th><td>${escHtml(safety.summary).replace(/\n/g,'<br>')}</td></tr>`:''}
+     ${safety.defects?`<tr><th>ליקויי בטיחות</th><td>${escHtml(safety.defects)}</td></tr>`:''}
+     ${safety.instructions?`<tr><th>הנחיות בטיחות שניתנו</th><td>${escHtml(safety.instructions)}</td></tr>`:''}
+     ${safety.actions?`<tr><th>פעולות שבוצעו לתיקון</th><td>${escHtml(safety.actions)}</td></tr>`:''}
+     ${safety.height?`<tr><th>עבודה בגובה / הרמה</th><td>${escHtml(safety.height)}</td></tr>`:''}
+     ${safety.hot?`<tr><th>עבודה חמה / חשמל</th><td>${escHtml(safety.hot)}</td></tr>`:''}
+     ${safety.fire?`<tr><th>דרכי מילוט ומערכות אש</th><td>${escHtml(safety.fire)}</td></tr>`:''}
+    </tbody>
+   </table>` : ''}
+
+   <h2>קבצים מצורפים</h2>
+   <table><thead><tr><th>#</th><th>שם הקובץ</th><th>סוג</th><th>מועד הצירוף</th></tr></thead>
+   <tbody>${attachmentRows || '<tr><td colspan="4" class="empty">לא צורפו קבצים</td></tr>'}</tbody></table>
+   ${attachmentImages ? `<h3>תמונות מצורפות</h3><div class="gallery">${attachmentImages}</div>` : ''}
+
+   <h2>פעולות להמשך</h2>
+   <table>
+     <thead><tr><th>#</th><th>פעולה</th><th>אחראי</th><th>תאריך יעד</th><th>סטטוס</th><th>הערה</th></tr></thead>
+     <tbody>${actionRows || '<tr><td colspan="6" class="empty">לא הוזנו נתונים</td></tr>'}</tbody>
+   </table>
+
+   ${signatureBlocks ? `<h2>חתימות</h2><div class="signatures-print">${signatureBlocks}</div>` : ''}
+   ${j.notes ? `<h2>הערות כלליות</h2><p>${escHtml(j.notes)}</p>` : ''}
+   ${updateRows ? `<h2>עדכונים לאחר נעילה</h2><table><thead><tr><th>#</th><th>שם הקובץ</th><th>סוג</th><th>מועד העדכון</th></tr></thead><tbody>${updateRows}</tbody></table>${postLockImages?`<h3>תמונות שנוספו לאחר נעילה</h3><div class="gallery">${postLockImages}</div>`:''}` : ''}
+   <div class="report-footer">
+     <span>מערכת יומני עבודה למנהל פרויקט</span>
+     <span>הופק: ${generatedAt}</span>
+   </div>
+ </body>
+ </html>`;
+}
+function openPrintableReport(){if(!prepareOutput())return;const w=window.open('','_blank');if(!w){alert('הדפדפן חסם חלון חדש. יש לאפשר חלונות קופצים וללחוץ שוב.');return}w.document.open();w.document.write(reportHtml());w.document.close()}
+function downloadReport(){if(!prepareOutput())return;const {p,j}=currentData(),blob=new Blob([reportHtml()],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`יומן_${p.number}_${j.date}_${j.number}.html`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function shareToWhatsApp(){if(!prepareOutput())return;const text=journalSummary();openExternal('https://wa.me/?text='+encodeURIComponent(text))}
+function shareByEmail(){
+ if(!prepareOutput())return;
+ const {p,j}=currentData();
+ if(!p||!j)return alert('לא נמצא יומן פעיל לשליחה.');
+ const text=emailJournalBody();
+ openExternal('mailto:?subject='+encodeURIComponent(`יומן עבודה – ${p.name} | ${j.date}`)+'&body='+encodeURIComponent(text));
+}
+
+async function copyJournalText(){
+ if(!prepareOutput())return;
+ const text=emailJournalBody();
+ try{await navigator.clipboard.writeText(text);alert('תוכן היומן הועתק. ניתן להדביק ב־WhatsApp או במייל.')}
+ catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('תוכן היומן הועתק.')}
+}
+function showShareActions(){$('lockedActions').classList.remove('hidden');$('lockedActions').scrollIntoView({behavior:'smooth',block:'start'})}
+db.projects.forEach(p=>{
+ (p.contractors||[]).forEach(c=>{
+  if(c.name && !db.contractors.find(x=>x.name===c.name))db.contractors.push({...c});
+ });
+ (p.contacts||[]).forEach(c=>{
+  if(c.name && !db.contacts.find(x=>x.id===c.id || (x.name===c.name&&x.email===c.email&&x.phone===c.phone)))db.contacts.push({...c,id:c.id||uid()});
+ });
+});
+db.trades=db.trades||[];
+db.teamLeaders=db.teamLeaders||[];
+db.changeTypes=db.changeTypes||['שינוי','הנחיה','דרישת מזמין','עבודה נוספת','אירוע משמעותי'];
+(db.contractors||[]).forEach(c=>{
+ if(c.trade&&!db.trades.includes(c.trade))db.trades.push(c.trade);
+ if(c.leader&&!db.teamLeaders.includes(c.leader))db.teamLeaders.push(c.leader);
+});
+(db.journals||[]).forEach(j=>{
+ (j.contractors||[]).forEach(x=>{
+  if(x.trade&&!db.trades.includes(x.trade))db.trades.push(x.trade);
+  if(x.leader&&!db.teamLeaders.includes(x.leader))db.teamLeaders.push(x.leader);
+ });
+ (j.changes||[]).forEach(x=>{
+  if(x.type&&!db.changeTypes.includes(x.type))db.changeTypes.push(x.type);
+ });
+});
+db.responsibles=db.responsibles||[];
+(db.managers||[]).forEach(x=>{if(x&&!db.responsibles.includes(x))db.responsibles.push(x)});
+(db.contacts||[]).forEach(x=>{if(x.name&&!db.responsibles.includes(x.name))db.responsibles.push(x.name)});
+(db.contractors||[]).forEach(x=>{if(x.name&&!db.responsibles.includes(x.name))db.responsibles.push(x.name)});
+(db.journals||[]).forEach(j=>(j.actions||[]).forEach(x=>{
+ if(x.responsible&&!db.responsibles.includes(x.responsible))db.responsibles.push(x.responsible);
+}));
+db.recycleBin=db.recycleBin||[];
+persist();
+refreshMasterLists();document.addEventListener('input',e=>{if(e.target.id==='jDate')$('jDay').value=new Date(e.target.value+'T12:00:00').toLocaleDateString('he-IL',{weekday:'long'});if($('journalScreen').classList.contains('active'))autosave()});renderProjects();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+<div style="text-align:center;color:#6b7785;font-size:11px;padding:12px 6px">
+  יומן עבודה — Pilot 4.1.0
+</div>
+</body></html>
